@@ -1,0 +1,20 @@
+[
+    {
+      "id": 1,
+      "email": "tungnt@softech.vn",
+      "username": "tungnt",
+      "firstName": "Tony",
+      "password": "123456789",
+      "lastName": "Woo",
+      "isActive": true
+    },
+    {
+      "id": 2,
+      "email": "vananh@softech.vn",
+      "username": "vananh",
+      "firstName": "Tony",
+      "password": "1234567890",
+      "lastName": "Woo",
+      "isActive": true
+    }
+]
