@@ -2,7 +2,7 @@ import React, { useEffect } from 'react'
 import {Button, Layout} from 'antd';
 import {Content} from 'antd/lib/layout/layout';
 import axios from 'axios';
-import moduleName, { URLCategory } from '../functions/constants';
+import { URLCategory } from '../functions/constants';
 
 function Categories() {
   useEffect(()=>{
