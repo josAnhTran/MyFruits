@@ -1,10 +1,10 @@
-import logo from './logo.svg';
 import './App.css';
 import styles from './App.module.css';
 
 import {BrowserRouter, NavLink, Route, Routes} from 'react-router-dom';
 import Categories from './pages/Categories';
 import Orders from './pages/Orders';
+import Index from './pages/Index';
 import Suppliers from './pages/Suppliers';
 import Customers from './pages/Customers';
 import Employees from './pages/Employees';
@@ -13,44 +13,49 @@ import Products from './pages/Products';
 
 function App() {
   return (
-    <div className="App">
+    <div className={styles.container}>
      <BrowserRouter>
-      <ul>
+      <ul className= {styles.navigation}>
         <li className={styles.link}>
-        <NavLink to= 'orders'>Danh Mục Đơn Đặt Hàng</NavLink>
-
+        <NavLink to= 'index'  className= {({ isActive }) => (isActive ? styles.navLinkActive : styles.navLink)}>Trang Chủ</NavLink>
         </li>
-        <li className={styles.link}>
-        <NavLink to= 'categories'>Danh Mục Sản Phẩm</NavLink>
 
+        <li className={styles.link}>
+        <NavLink to= 'orders'  className= {({ isActive }) => (isActive ? styles.navLinkActive : styles.navLink)}>Đơn Đặt Hàng</NavLink>
         </li>
-        <li className={styles.link}>
-        <NavLink to= 'suppliers'>Danh Mục Nhà Phân Phối</NavLink>
 
+        <li className={styles.link}>
+        <NavLink to= 'categories'  className= {({ isActive }) => (isActive ? styles.navLinkActive : styles.navLink)}>Sản Phẩm</NavLink>
         </li>
-        <li className={styles.link}>
-        <NavLink to= 'products'>Danh Mục Sản Phẩm</NavLink>
 
+        <li className={styles.link}>
+        <NavLink to= 'suppliers'  className= {({ isActive }) => (isActive ? styles.navLinkActive : styles.navLink)}>Nhà Phân Phối</NavLink>
         </li>
-        <li className={styles.link}>
-        <NavLink to= 'employees'>Danh Sách Nhân Viên</NavLink>
 
+        <li className={styles.link}>
+        <NavLink to= 'products'  className= {({ isActive }) => (isActive ? styles.navLinkActive : styles.navLink)}>Sản Phẩm</NavLink>
         </li>
-        <li className={styles.link}>
-        <NavLink to= 'customers'>Danh Sách Khách Hàng</NavLink>
 
+        <li className={styles.link}>
+        <NavLink to= 'employees'  className= {({ isActive }) => (isActive ? styles.navLinkActive : styles.navLink)}>Nhân Viên</NavLink>
+        </li>
+
+        <li className={styles.link}>
+        <NavLink to= 'customers'  className= {({ isActive }) => (isActive ? styles.navLinkActive : styles.navLink)}>Khách Hàng</NavLink>
         </li>
       </ul>
 
       {/* ROUTES SETTINGS */}
       <div className={styles.routerArea}>
         <Routes>
-          <Route path='/' element={<Orders/>}/>
-          <Route path='/' element={<Categories/>}/>
-          <Route path='' element={<Suppliers/>}/>
-          <Route path='' element={<Products/>}/>
-          <Route path='' element={<Customers/>}/>
-          <Route path='' element={<Employees/>}/>
+          <Route path='/' element={<Index/>}/>
+          <Route path='/index' element={<Index/>}/>
+          <Route path='/orders' element={<Orders/>}/>
+          <Route path='/categories' element={<Categories/>}/>
+          <Route path='/suppliers' element={<Suppliers/>}/>
+          <Route path='/products' element={<Products/>}/>
+          <Route path='/customers' element={<Customers/>}/>
+          <Route path='/employees' element={<Employees/>}/>
 
           {/* NO MATCHING ROUTE */}
           <Route
