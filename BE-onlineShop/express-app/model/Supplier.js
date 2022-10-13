@@ -6,20 +6,28 @@ const supplierSchema = new Schema(
     {
         name: {
             type: String,
+            trim: true,
             maxLength: 100,
             required: true
         },
         email: {
             type: String,
+            trim: true,
+            lowercase : true,
+            index: {
+                unique:true
+            },
             maxLength: 50,
             required: true
         },
         phoneNumber: {
             type: String,
+            trim: true,
             maxLength: 50
         },
         address: {
             type: String,
+            trim: true,
             maxLength: 500,
             required: true
         }

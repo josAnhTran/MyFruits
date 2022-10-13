@@ -125,7 +125,9 @@ router.get('/search-many', validateSchema(search_deleteManyOrdersSchema), functi
   updateData.createdDate = new Date(moment(updateData.createdDate).utc().local().format('YYYY-MM-DD'))
 }
 
-const order = await Supplier.findByIdAndUpdate(id, updateData)
+const opts= {runValidators: true}
+
+const order = await Supplier.findByIdAndUpdate(id, updateData, opts)
 res.json(Supplier)
 }catch(err) {
   res.status(400).json({error: {name: err.name, message: err.message}});

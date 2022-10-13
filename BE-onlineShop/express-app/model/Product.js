@@ -6,6 +6,7 @@ const productSchema = new Schema(
     {
         name: {
             type: String,
+            trim : true,
             maxLength: 50,
             required: true
         },
@@ -16,6 +17,7 @@ const productSchema = new Schema(
         supplierId: { type: Schema.Types.ObjectId},
         description: {
             type: String,
+            trim : true,
             required: true
         }
     },

@@ -86,16 +86,16 @@ router.post('/insert', async ( req, res, next) => {
 //
 
  //Update One with _Id
- router.patch('/update-one/:id', async(req, res, next) => {
+ router.patch('/updateById/:id', async(req, res, next) => {
   try{
     const {id} = req.params;
     const updateData = req.body;
-    const category = await Category.findByIdAndUpdate(id, updateData, {
-      new: true,
-    });
+    const opts= {runValidators: true}
+    const category = await Category.findByIdAndUpdate(id, updateData, opts);
     res.json(category)
   }catch(err) {
-    res.status(400).json({error: {name: err.name, message: err.message}});
+    // res.status(400).json({showError: {name: err.name, message: err.message}});
+    res.status(400).json(err);
   }
 })
 //

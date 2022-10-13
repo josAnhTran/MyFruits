@@ -98,7 +98,10 @@ router.post('/insert', async (req, res, next) =>{
       //convert type of date from String to Date
       updateData.birthday= new Date(updateData.birthday)
     }
-    const employee = await Employee.findByIdAndUpdate(id, updateData)
+
+    const opts= {runValidators: true}
+
+    const employee = await Employee.findByIdAndUpdate(id, updateData, opts)
     res.json(employee)
   }catch(err) {
     res.status(400).json({error: {name: err.name, message: err.message}});

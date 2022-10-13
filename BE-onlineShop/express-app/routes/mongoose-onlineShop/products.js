@@ -91,9 +91,9 @@ router.patch('/update-one/:id', async(req, res, next) => {
   try{
     const {id} = req.params;
     const updateData = req.body;
-    const product = await Product.findByIdAndUpdate(id, updateData, {
-      new: true,
-    });
+    const opts= {runValidators: true}
+
+    const product = await Product.findByIdAndUpdate(id, updateData, opts);
     res.json(product)
   }catch(err) {
     res.status(400).json({error: {name: err.name, message: err.message}});

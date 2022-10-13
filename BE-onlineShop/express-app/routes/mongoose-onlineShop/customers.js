@@ -116,7 +116,9 @@ router.patch('/update-one/:id', async(req, res, next) => {
       //convert type of date from String to Date
       updateData.birthday= new Date(updateData.birthday)
     }
-    const customer = await Customer.findByIdAndUpdate(id, updateData)
+    const opts= {runValidators: true}
+
+    const customer = await Customer.findByIdAndUpdate(id, updateData, opts)
     res.json(customer)
   }catch(err) {
     res.status(400).json({error: {name: err.name, message: err.message}});

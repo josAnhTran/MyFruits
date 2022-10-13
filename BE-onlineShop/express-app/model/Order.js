@@ -31,20 +31,24 @@ const orderSchema = new Schema(
         },
         status: {
             type: String,
+            trim: true,
             enum: ['WAITING', 'COMPLETED', 'CANCELED'],
             default: 'WAITING',
             required: true
         },
         description: {
             type: String,
+            trim: true,
         },
         shippingAddress: {
             type: String,
+            trim: true,
             maxLength: 500,
             required: true
         },
         paymentType: {
             type: String,
+            trim: true,
             default: 'CASH',
             enum: ['CREDIT CARD', 'CASH'],
             required: true

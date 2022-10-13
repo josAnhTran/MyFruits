@@ -6,12 +6,16 @@ const categorySchema = new Schema(
     {
         name: {
             type: String,
-            maxLength: 50,
+            trim: true,
+            maxLength: [50, 'Tên danh mục không quá 50 kí tự!'],
+            // maxLength: 50,
             required: true
         },
         description: {
             type: String,
-            maxLength: 500
+            trim: true,
+            maxLength: 500,
+            required: true
         }
     },
     // {
@@ -37,6 +41,7 @@ const categorySchema = new Schema(
 
 //validateBeforeSave
 categorySchema.set('validateBeforeSave', true);
+
 
 const Category = model('Category', categorySchema);
 

@@ -91,7 +91,9 @@ router.post('/insert', async (req, res, next) =>{
   try{
     const {id} = req.params;
     const updateData = req.body
-    const supplier = await Supplier.findByIdAndUpdate(id, updateData)
+    const opts= {runValidators: true}
+
+    const supplier = await Supplier.findByIdAndUpdate(id, updateData, opts)
     res.json(supplier)
   }catch(err) {
     res.status(400).json({error: {name: err.name, message: err.message}});

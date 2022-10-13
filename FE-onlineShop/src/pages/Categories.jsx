@@ -42,6 +42,9 @@ function Categories() {
             type='primary' 
             onClick= {() => {
               setIsModalOpen(true)
+              setSelectedId(record._id)
+              updateForm.setFieldsValue({'name': record.name, 'description': record.description})
+              // updateForm.setFieldValue('name', record.name)
             }}
             >
             </Button>
@@ -78,6 +81,7 @@ function Categories() {
   const [categories, setCategories] = useState([])
   const [refresh, setRefresh] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [selectedId, setSelectedId] = useState(null)
 
   const [createForm] = Form.useForm()
   const [updateForm] = Form.useForm()
@@ -85,7 +89,6 @@ function Categories() {
 
   const handleOk  = () =>{
     updateForm.submit()
-    // setIsModalOpen(false)
   }
   const handleCancel = () => {
     setIsModalOpen(false)
@@ -129,7 +132,7 @@ function Categories() {
         console.error(error)
       }}
       autoComplete="off"
-    >
+     >
       <Form.Item
         label="Tên danh mục"
         name="name"
@@ -189,16 +192,23 @@ function Categories() {
         description: ''
       }}
       onFinish={(values) => {
-        // //POST
-        // axios.post( URLCategory +'/insert', values)
-        // .then(response => {
-        //   if(response.status === 201) {
-        //     setRefresh(e => !e)
-        //     updateForm.resetFields()
-        //     notification.info({message: 'Thông báo', description: 'Thêm mới thành công'})
-        //   }
-        // })
-        console.log(values)
+        //SUBMIT
+        axios.patch( URLCategory +'/updateById/' + selectedId, values)
+        .then(response => {
+          if(response.status === 200) {
+            console.log(response.data)
+            setIsModalOpen(false)
+            setRefresh(e => !e)
+            notification.info({message: 'Thông báo', description: 'Cập nhật thành công'})
+          }
+        })
+        .catch(error => {
+          const errorText = {name: error.response.data.showError.name, 
+                            message : error.response.data.showError.message
+                          }
+          notification.info({message: error.response.data.showError.name, description: error.response.data.showError.message })   
+          console.log(errorText)
+        })
       }}
       onFinishFailed={(error) => {
         console.error(error)
