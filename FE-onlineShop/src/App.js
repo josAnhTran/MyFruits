@@ -25,7 +25,7 @@ function App() {
         </li>
 
         <li className={styles.link}>
-        <NavLink to= 'categories'  className= {({ isActive }) => (isActive ? styles.navLinkActive : styles.navLink)}>Sản Phẩm</NavLink>
+        <NavLink to= 'categories'  className= {({ isActive }) => (isActive ? styles.navLinkActive : styles.navLink)}>Nhóm Sản Phẩm</NavLink>
         </li>
 
         <li className={styles.link}>

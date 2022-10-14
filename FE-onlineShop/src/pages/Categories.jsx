@@ -1,42 +1,57 @@
 import React, { useEffect, useState } from 'react'
 
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 
-import {Button, Layout, Table, Form, Input, Popconfirm, message, Space, notification, Modal } from 'antd';
+import {
+  Button, Layout, Table, Form, Input,
+  Popconfirm, message, Space, notification,
+  Modal
+  } from 'antd';
 import {Content} from 'antd/lib/layout/layout';
 import {DeleteOutlined, EditOutlined} from '@ant-design/icons';
 
 import { URLCategory } from '../functions/constants';
 
-
-
 function Categories() {
 
   const columns =[
     {
-      title: 'Tên danh mục',
+      title: (() => {
+        return <div style={{paddingLeft: 8, fontWeight: 600}}>Tên Danh Mục</div>
+      }),
       key: 'name',
       dataIndex: 'name',
       width: '15%',
+      // fixed: 'left',
+      // defaultSortOrder: 'ascend',
+      sorter: (a, b) => a.name.length - b.name.length,
       render: (text) => {
         const style = {
           fontWeight: 600,
+          paddingLeft: 8,
         }
-        return <span style={style}>{text}</span>
+        return <div style={style}>{text}</div>
       }
     },
+    
     {
       title: 'Mô tả',
       key: 'description',
-      dataIndex: 'description'
+      dataIndex: 'description',
     },
     {
-      title: '',
+      title: (() => {
+        return <div style={{paddingLeft: 8, fontWeight: 600}}>Thao tác</div>
+      }),
       key: 'actions',
-      width: '1%',
+      width: '8%',
+      // fixed: 'right',
       render: (record) => {
         return (
-          <Space>
+          <div 
+          style={{textAlign: 'center',display: 'flex',
+          gap: 5,justifyContent: 'center'}}
+          >
             <Button
             icon={<EditOutlined />}
             type='primary' 
@@ -71,7 +86,7 @@ function Categories() {
               >
               </Button>
             </Popconfirm>
-          </Space>
+          </div>
        
         )
       }
@@ -85,7 +100,6 @@ function Categories() {
 
   const [createForm] = Form.useForm()
   const [updateForm] = Form.useForm()
-
 
   const handleOk  = () =>{
     updateForm.submit()
@@ -168,8 +182,25 @@ function Categories() {
         </Button>
       </Form.Item>
     </Form>
-    <Table rowKey='_id' columns={columns} dataSource={categories} 
-          pagination ={false}
+    <Table 
+    style={{marginTop: 20}} 
+    rowKey='_id' 
+    columns={columns} 
+    dataSource={categories} 
+    pagination ={false}
+    locale={{ 
+          triggerDesc: 'Giảm dần',
+          triggerAsc: 'Tăng dần', 
+          cancelSort: 'Hủy sắp xếp'
+      }}
+    bordered
+    size='small'
+    // scroll={{x:1300, y: 400}}
+    scroll={{ y: 300}}
+    title={() => {
+      return <div style={{textAlign:'center', fontWeight: 600}}>DANH SÁCH DANH MỤC HÀNG HÓA</div>
+    }}
+    footer={() => 'Nếu có vấn đề khi tương tác với hệ thống, xin vui lòng liên hệ số điện thoại 002233442'}
     />
 
     <Modal 
@@ -193,21 +224,23 @@ function Categories() {
       }}
       onFinish={(values) => {
         //SUBMIT
-        axios.patch( URLCategory +'/updateById/' + selectedId, values)
+        // try{
+          axios.patch( URLCategory +'/updateById/' + selectedId, values)
         .then(response => {
           if(response.status === 200) {
-            console.log(response.data)
+            // console.log(response.data)
             setIsModalOpen(false)
             setRefresh(e => !e)
             notification.info({message: 'Thông báo', description: 'Cập nhật thành công'})
           }
         })
-        .catch(error => {
-          const errorText = {name: error.response.data.showError.name, 
-                            message : error.response.data.showError.message
+        // } 
+        .catch((error) => {
+          const errorText = {name: error.response.data.error.name, 
+                            message : error.response.data.error.message
                           }
-          notification.info({message: error.response.data.showError.name, description: error.response.data.showError.message })   
-          console.log(errorText)
+          notification.info({message: errorText.name, description: errorText.message})
+            console.log(errorText)
         })
       }}
       onFinishFailed={(error) => {

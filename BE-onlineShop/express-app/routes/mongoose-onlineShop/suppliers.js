@@ -18,6 +18,7 @@ const {
   updateDocument, updateDocuments,
   findOne,findDocuments,
   deleteMany,deleteOneWithId,
+  formatterErrorFunc
   } = require("../../helpers/MongoDBOnlineShop");
 const { validateSchema,
         search_deleteWithId,
@@ -69,7 +70,8 @@ router.post('/insert', async (req, res, next) =>{
     res.status(201).json(supplier);
     
   }catch(err) {
-    res.status(400).json({error: {name: err.name, message: err.message}})
+    const messageError = formatterErrorFunc(err)
+    res.status(400).json({error: messageError})
   }
 })
 
@@ -96,7 +98,8 @@ router.post('/insert', async (req, res, next) =>{
     const supplier = await Supplier.findByIdAndUpdate(id, updateData, opts)
     res.json(supplier)
   }catch(err) {
-    res.status(400).json({error: {name: err.name, message: err.message}});
+    const messageError = formatterErrorFunc(err)
+    res.status(400).json({error: messageError})
   }
 })
 //

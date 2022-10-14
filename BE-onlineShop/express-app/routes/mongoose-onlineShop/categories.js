@@ -17,6 +17,7 @@ const {
   updateDocument, updateDocuments,
   findOne,findDocuments,
   deleteMany,deleteOneWithId,
+  formatterErrorFunc
   } = require("../../helpers/MongoDBOnlineShop");
 const { validateSchema,
    insertOneCategorySchema, 
@@ -27,6 +28,7 @@ const { validateSchema,
    search_deleteManyCategoriesSchema,
    
   } = require('../../helpers/schemasCategoriesOnlineShop.yup');
+
 
 //Get all categories
 router.get('/', async(req, res, next) =>{
@@ -68,7 +70,8 @@ router.post('/insert', async ( req, res, next) => {
     await category.save();
     res.status(201).json(category);
   }catch(err) {
-    res.status(400).json({error: {name: err.name, message: err.message}})
+    const messageError = formatterErrorFunc(err)
+    res.status(400).json({error: messageError})
   }
 })
 
@@ -94,8 +97,8 @@ router.post('/insert', async ( req, res, next) => {
     const category = await Category.findByIdAndUpdate(id, updateData, opts);
     res.json(category)
   }catch(err) {
-    // res.status(400).json({showError: {name: err.name, message: err.message}});
-    res.status(400).json(err);
+    const messageError = formatterErrorFunc(err)
+    res.status(400).json({error: messageError})
   }
 })
 //

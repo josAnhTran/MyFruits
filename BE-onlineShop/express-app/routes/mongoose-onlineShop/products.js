@@ -18,6 +18,7 @@ const {
   updateDocument, updateDocuments,
   findOne,findDocuments,
   deleteMany,deleteOneWithId,
+  formatterErrorFunc
   } = require("../../helpers/MongoDBOnlineShop");
 const {
   validateSchema,
@@ -70,7 +71,8 @@ router.get('/search-many', validateSchema(search_deleteManyProductsSchema), func
       await product.save();
       res.status(201).json(product);
     }catch(err) {
-      res.status(400).json({error: {name: err.name, message: err.message}})
+      const messageError = formatterErrorFunc(err)
+      res.status(400).json({error: messageError})
     }
   })
 
@@ -96,7 +98,8 @@ router.patch('/update-one/:id', async(req, res, next) => {
     const product = await Product.findByIdAndUpdate(id, updateData, opts);
     res.json(product)
   }catch(err) {
-    res.status(400).json({error: {name: err.name, message: err.message}});
+    const messageError = formatterErrorFunc(err)
+    res.status(400).json({error: messageError})
   }
 })
  //Update MANY 

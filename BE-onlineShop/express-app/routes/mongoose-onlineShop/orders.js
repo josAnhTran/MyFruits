@@ -17,11 +17,9 @@ const COLLECTION_NAME= "orders"
 const {
   insertDocument,insertDocuments,
   updateDocument, updateDocuments,
-  findOne,
-  deleteMany,
-  deleteOneWithId,
-  findDocuments
-  
+  findOne, findDocuments,
+  deleteMany, deleteOneWithId,
+  formatterErrorFunc
   } = require("../../helpers/MongoDBOnlineShop");
 const { validateSchema,
         search_deleteWithId,
@@ -84,7 +82,8 @@ router.get('/search-many', validateSchema(search_deleteManyOrdersSchema), functi
     res.status(201).json(order);
       
   }catch(err) {
-    res.status(400).json({error: {name: err.name, message: err.message}})
+    const messageError = formatterErrorFunc(err)
+    res.status(400).json({error: messageError})
   }
 })
 
@@ -130,7 +129,8 @@ const opts= {runValidators: true}
 const order = await Supplier.findByIdAndUpdate(id, updateData, opts)
 res.json(Supplier)
 }catch(err) {
-  res.status(400).json({error: {name: err.name, message: err.message}});
+  const messageError = formatterErrorFunc(err)
+    res.status(400).json({error: messageError})
 }
 })
 //

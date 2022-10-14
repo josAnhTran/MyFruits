@@ -13,12 +13,11 @@ const url= "mongodb://127.0.0.1:27017/"
 const COLLECTION_NAME= "customers"
 
 const {
-  insertDocument,insertDocuments, updateDocument,
-  updateDocuments,
-  findOne,
-  findDocuments,
-  deleteOneWithId,
-  deleteMany
+  insertDocument,insertDocuments,
+  updateDocument, updateDocuments,
+  findOne, findDocuments,
+  deleteOneWithId, deleteMany,
+  formatterErrorFunc
   
   } = require("../../helpers/MongoDBOnlineShop");
 const { validateSchema, 
@@ -79,7 +78,8 @@ router.get('/search-many', validateSchema(search_deleteManyCustomersSchema), fun
       res.status(201).json(customer);
       
     }catch(err) {
-      res.status(400).json({error: {name: err.name, message: err.message}})
+      const messageError = formatterErrorFunc(err)
+      res.status(400).json({error: messageError})
     }
   })
 
@@ -121,7 +121,8 @@ router.patch('/update-one/:id', async(req, res, next) => {
     const customer = await Customer.findByIdAndUpdate(id, updateData, opts)
     res.json(customer)
   }catch(err) {
-    res.status(400).json({error: {name: err.name, message: err.message}});
+    const messageError = formatterErrorFunc(err)
+    res.status(400).json({error: messageError})
   }
 })
 //

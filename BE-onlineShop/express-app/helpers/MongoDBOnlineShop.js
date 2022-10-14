@@ -8,60 +8,25 @@ const { MongoClient, ObjectId } = require('mongodb');
 const DATABASE_NAME = 'online-shop'
 const CONNECTION_STRING= "mongodb://127.0.0.1:27017/" + DATABASE_NAME
 
-//TEST-------------------------------------------------
-function findDocumentsTest(query={}, collectionName, aggregate=[], sort={}, limit=50, skip=0, projection={}){
-    return new Promise((resolve, reject) => {
-        MongoClient.connect(CONNECTION_STRING, {useNewUrlParser:true , useUnifiedTopology: true})
-            .then(client =>{
-                const dbo = client.db(DATABASE_NAME);
-                const collection = dbo.collection(collectionName);
-                let cursor = collection;
-            //    if (query !== {})  {
-            //     cursor = cursor.find(query) ;}
-            //    else {
-            //     cursor = cursor.aggregate(aggregate);}
-                
-                cursor
-                    
-                    .createIndex({
-                        name: "text",
-                        description: "text"
-                    },
-                    {
-                        name: "search_text",
-                        default_language: "none"
-                    }
-                    )
-
-                   cursor .find({$text: {$search: "Iphone"}})
-
-                    // .dropIndex("search_text")
-
-                    // .indexInformation()
-
-                    // .getIndexes()
-
-                        // .sort(sort)
-                        // .limit(limit)
-                        // .skip(skip)
-                        // .project(projection)
-                        // .toArray()
-
-                        .then(result => {
-                            // cursor.dropIndex("search_text")
-                            client.close();
-                            resolve(result);
-                       })
-                        .catch(err => {
-                            console.log('err:   ', err)
-                            client.close()
-                            reject(err)
-                        })
-            })
-            .catch(err => reject(err))
-    })
-}
-//TEST-------------------------------------------------
+///Formatter Error Message
+const formatterErrorFunc = (err) =>{
+    let errors = {}
+    const errMessage = err.message
+    const error01 = errMessage.substring(errMessage.indexOf(':') +1).trim()
+    const errorSpilt = error01.split(':');
+    let [name, message] =error01.split(':').map((e) => e.trim())
+    switch (name) {
+      case 'name' :
+        name= 'Tên danh mục';
+        break;
+      case 'description' :
+        name= 'Mô tả danh mục';
+        break;
+    }
+    errors.name = name;
+    errors.message = message
+    return errors
+  }
 
 // FIND following id
 function findOne(id, collectionName, aggregate=[]){
@@ -85,54 +50,6 @@ function findOne(id, collectionName, aggregate=[]){
 }
 //
 
-// FIND MANY 
-
-// function findDocuments(query={}, collectionName='', aggregate=[], sort={}, limit=50, skip=0, projection={}){
-//     console.log("test",collectionName)
-//     return new Promise((resolve, reject) => {
-//         MongoClient.connect(CONNECTION_STRING, {useNewUrlParser:true , useUnifiedTopology: true})
-//             .then(client =>{
-//                 const dbo = client.db(DATABASE_NAME);
-//                 const collection = dbo.collection(collectionName);
-//                 let cursor = collection;
-
-// //Check object(query); object(projection) is empty or not
-//                 const isEmptyQuery = !Object.keys(query).length;
-//                 const isEmptyAggregate = !Object.keys(aggregate).length;
-//                 const isEmptyProjection = !Object.keys(projection).length;
-
-//                if (isEmptyQuery && !isEmptyAggregate)  {
-//                 cursor = cursor.aggregate(aggregate);
-//             }
-//                else {
-//                 cursor = cursor.find(query) ;
-//             }
-                
-//                 cursor
-//                         .sort(sort)
-//                         .limit(limit)
-//                         .skip(skip)
-//                  //projection={} then method aggregate can not function       
-//                         if(!isEmptyProjection){
-//                             cursor.project(projection)
-//                         }
-
-//                         cursor.toArray()
-
-//                         .then(result => {
-//                             client.close();
-//                             resolve(result);
-//                        })
-//                         .catch(err => {
-//                             console.log('err:   ', err)
-//                             client.close()
-//                             reject(err)
-//                         })
-//             })
-//             .catch(err => reject(err))
-//     })
-// }
-// //
 
 function findDocuments({query=null, sort=null, limit=50, aggregate= [], skip=0, projection=null}, collectionName=''){
     return new Promise((resolve, reject) => {
@@ -318,7 +235,6 @@ module.exports = {
     insertDocument, insertDocuments,
     updateDocument, updateDocuments,
     findOne,findDocuments,
-    deleteMany,
-    deleteOneWithId,
-    findDocumentsTest
+    deleteMany, deleteOneWithId,
+    formatterErrorFunc
             }
