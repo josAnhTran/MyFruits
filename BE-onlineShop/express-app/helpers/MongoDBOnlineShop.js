@@ -146,7 +146,7 @@ function updateDocument(id, data, collectionName){
             const collection = dbo.collection(collectionName);
 
             collection.
-                updateOne(id, {$set: data})
+                findOneAndUpdate(id, {$set: data})
                 .then(result => {
                     client.close();
                     resolve(result);

@@ -34,6 +34,9 @@ var customersOnlineShopMongooseRouter = require('./routes/mongoose-onlineShop/cu
 var ordersOnlineShopMongooseRouter = require('./routes/mongoose-onlineShop/orders')
 var employeesOnlineShopMongooseRouter = require('./routes/mongoose-onlineShop/employees')
 //---------------------End--------------------------------//
+//UPLOAD
+
+
 
 var app = express();
 

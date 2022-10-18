@@ -5,16 +5,38 @@ import axios, { AxiosError } from 'axios';
 import {
   Button, Layout, Table, Form, Input,
   Popconfirm, message, Space, notification,
-  Modal
+  Modal,
+  Upload
   } from 'antd';
 import {Content} from 'antd/lib/layout/layout';
-import {DeleteOutlined, EditOutlined} from '@ant-design/icons';
+import {DeleteOutlined, EditOutlined, UploadOutlined} from '@ant-design/icons';
 
-import { URLCategory } from '../functions/constants';
+import { URLCategory, WEB_SERVER_URL } from '../functions/constants';
+import TextArea from 'antd/lib/input/TextArea';
 
 function Categories() {
 
   const columns =[
+    {
+      title: (() => {
+        return <div style={{paddingLeft: 8, fontWeight: 600}}>Hình ảnh</div>
+      }),
+      key: 'imageUrl',
+      dataIndex: 'imageUrl',
+      width: '100px',
+      render: (text) => {
+        const style = {
+          fontWeight: 600,
+          paddingLeft: 8,
+        }
+        if(!text) {
+          text='/images/noImage.jpg'
+        }
+        return <div style={style}>
+        <img src={`${WEB_SERVER_URL}${text}`} style={{width: '100%'}} alt=''></img>
+        </div>
+      }
+    },
     {
       title: (() => {
         return <div style={{paddingLeft: 8, fontWeight: 600}}>Tên Danh Mục</div>
@@ -44,7 +66,7 @@ function Categories() {
         return <div style={{paddingLeft: 8, fontWeight: 600}}>Thao tác</div>
       }),
       key: 'actions',
-      width: '8%',
+      width: '12%',
       // fixed: 'right',
       render: (record) => {
         return (
@@ -52,6 +74,26 @@ function Categories() {
           style={{textAlign: 'center',display: 'flex',
           gap: 5,justifyContent: 'center'}}
           >
+            <Upload
+               showUploadList = {false}
+               name='file'
+               data= {{message: 'Testing upload file '}}
+               action = {'http://localhost:9000/categoriesOnlineShopMongoose/uploadFile/' + record._id}
+               headers= {{authorization: 'authorization-text'}}
+               onChange= {(info) =>{
+                   if(info.file.status !== 'uploading'){
+                       console.log(info.file, info.fileList);
+                   }
+                   if(info.file.status === 'done'){
+                      setRefresh(e =>!e)
+                       message.success(`${info.file.name} file uploaded successfully`);
+                   } else if(info.file.status === 'error') {
+                 message.error(`${info.file.name} file upload failed.`);
+                   }
+               }}
+           >
+           <Button icon={<UploadOutlined />} type='primary'  />
+           </Upload>
             <Button
             icon={<EditOutlined />}
             type='primary' 
@@ -119,7 +161,7 @@ function Categories() {
     <Content style={{padding: 24}}>
     <Form
       form={createForm}
-      name="F"
+      name="createForm"
       labelCol={{
         span: 8,
       }}
@@ -168,7 +210,7 @@ function Categories() {
         style={{fontWeight: 600}}
 
       >
-        <Input placeholder='Mô tả danh mục mới'/>
+        <TextArea rows={3} placeholder='Mô tả danh mục mới'/>
       </Form.Item>
 
       <Form.Item

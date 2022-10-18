@@ -4,8 +4,10 @@ const URLSupplier = 'http://localhost:9000/suppliersOnlineShopMongoose';
 const URLOrder = 'http://localhost:9000/ordersOnlineShopMongoose';
 const URLCustomer = 'http://localhost:9000/customersOnlineShopMongoose';
 const URLEmployee = 'http://localhost:9000/employeeesOnlineShopMongoose';
+const WEB_SERVER_URL = 'http://localhost:9000'
 
 module.exports= {
     URLCategory, URLSupplier, URLCustomer,
-    URLEmployee, URLOrder, URLProduct
+    URLEmployee, URLOrder, URLProduct,
+    WEB_SERVER_URL
 }
