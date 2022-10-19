@@ -1,13 +1,9 @@
 var express = require('express');
+const multer = require('multer');
 const {default: mongoose} = require ('mongoose')
 const Category = require('../../model/Category')
 const { ObjectId } = require('mongodb');
 var router = express.Router();
-//MULTER upload
-const fs= require('fs');
-const multer = require('multer');
-
-const UPLOAD_DIRECTORY = './public/dataImages/categories';
 
 mongoose.connect('mongodb://127.0.0.1:27017/online-shop')
 
@@ -32,55 +28,25 @@ const { validateSchema,
    search_deleteManyCategoriesSchema,
    
   } = require('../../helpers/schemasCategoriesOnlineShop.yup');
+const createCategoryImage = require('../../helpers/multerHelper');
 //
-// Upload file function
-const upload = multer({
-  storage: multer.diskStorage({
-    contentType: multer.AUTO_CONTENT_TYPE,
-    destination: function (req, file, callback) {
-      const categoryId = req.params.id;
-      const PATH = UPLOAD_DIRECTORY + '/' + categoryId;
 
-      if (!fs.existsSync(PATH)) {
-        // Create a directory
-        fs.mkdirSync(PATH);
-        callback(null, PATH);
-      } else {
-        callback(null, PATH);
-      }
-    },
-    filename: function (req, file, callback) {
-      // Xử lý tên file cho chuẩn
-      // code here...
-
-      // return
-      callback(null, file.originalname);
-    },
-  }),
-}).single('file');
-//
 router.post('/uploadFile/:id', function (req, res, next) {
-  upload(req, res, function (err) {
+  createCategoryImage(req, res, function (err) {
     if (err instanceof multer.MulterError) {
       res.status(500).json({ type: 'MulterError', err: err });
     } else if (err) {
       res.status(500).json({ type: 'UnknownError', err: err });
     } else {
       const categoryId = req.params.id;
-      const imageUrl = `/dataImages/categories/${categoryId}/${req.file.filename}`;
+      const imageUrl = `/images/categories/${categoryId}/${req.file.filename}`;
 
       // MONGODB
-      // updateDocument({_id: ObjectId(categoryId)}, { imageUrl: `/uploads/categories/${req.file.filename}` }, 'categories');
       updateDocument({_id: ObjectId(categoryId)}, { imageUrl: imageUrl }, COLLECTION_NAME)
-      // .then(result => {
-      //   res.status(201).json({update: true, result: result})
-      // })
-      // .catch(err => res.json({update: false}))
-
-      //
-
-      const publicUrl = `${req.protocol}://${req.hostname}:9000/uploads/products/${req.file.filename}`;
-      res.status(200).json({ ok: true, publicUrl: publicUrl, file: req.file });
+      .then(result => {
+        res.status(201).json({update: true, result: result})
+      })
+      .catch(err => res.json({update: 'UnSuccessful when update image for the category'}))
     }
   });
 });
