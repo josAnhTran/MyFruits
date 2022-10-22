@@ -1,4 +1,5 @@
 var express = require('express');
+const multer = require('multer');
 const {default: mongoose} = require ('mongoose')
 const Supplier = require('../../model/Supplier')
 var moment = require('moment')
@@ -28,6 +29,28 @@ const { validateSchema,
         updateOneSupplierSchema,
         updateManySupplierSchema,
 } = require('../../helpers/schemasSuppliersOnlineShop.yup');
+const createSupplierImage = require('../../helpers/multerHelper');
+
+
+router.post('/uploadFile/:id', function (req, res, next) {
+  createSupplierImage(req, res, function (err) {
+    if (err instanceof multer.MulterError) {
+      res.status(500).json({ type: 'MulterError', err: err });
+    } else if (err) {
+      res.status(500).json({ type: 'UnknownError', err: err });
+    } else {
+      const supplierId = req.params.id;
+      const imageUrl = `/images/suppliers/${supplierId}/${req.file.filename}`;
+
+      // MONGODB
+      updateDocument({_id: ObjectId(supplierId)}, { imageUrl: imageUrl }, COLLECTION_NAME)
+      .then(result => {
+        res.status(201).json({update: true, result: result})
+      })
+      .catch(err => res.json({update: 'UnSuccessful when update image for the supplier'}))
+    }
+  });
+});
 
 //Get all suppliers
 router.get('/', async(req, res, next) =>{

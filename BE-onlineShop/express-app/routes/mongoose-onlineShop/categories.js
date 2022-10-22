@@ -52,35 +52,6 @@ router.post('/uploadFile/:id', function (req, res, next) {
 });
 
 
-//
-// router.post('/uploadFile/:id', function(req, res, next){
-//   console.log('begin')
-
-//   upload(req, res, function(err){
-//     console.log('trying')
-//       if(err instanceof multer.MulterError){
-//           res.status(500).json({type: 'MulterError', err: err});
-//       } else if(err){
-//           res.status(500).json({type: 'UnknownError', err: err});
-//       }else{
-//         console.log('middle')
-//         const categoryId = req.params.id;
-//         console.log('category Id: ',categoryId)
-//         // const publicUrl = `${req.protocol}://${req.hostname}:9000/uploads/categories/${categoryId}/${req.file.filename}`;
-//         const publicUrl1 = `/pictureStorage/categories/${categoryId}/${req.file.filename}`;
-//         const publicUrl = `${req.protocol}://${req.hostname}:9000/pictureStorage/categories/${categoryId}/${req.file.filename}`;
-//             // const category = Category.findByIdAndUpdate(categoryId, {imageUrl: 'test'});  Not working
-//             updateDocument({_id: ObjectId(categoryId)},{imageUrl: publicUrl1}, COLLECTION_NAME );
-//             // .then(result => {
-//               console.log('ok here')
-//               // res.status(201).json({update: true, result: result})
-//               res.status(200).json({ ok: true, publicUrl: publicUrl, file: req.file });
-//             // })
-//             // .catch(err => res.json({update: false}))
-//       }
-//   })
-// })
-
 //Get all categories
 router.get('/', async(req, res, next) =>{
   try{

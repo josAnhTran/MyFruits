@@ -4,15 +4,15 @@ import axios, { AxiosError } from 'axios';
 
 import {
   Button, Layout, Table, Form, Input,
-  Popconfirm, message, Space, notification,
+  Popconfirm, message, notification,
   Modal,
   Upload
   } from 'antd';
 import {Content} from 'antd/lib/layout/layout';
-import {DeleteOutlined, EditOutlined, UploadOutlined} from '@ant-design/icons';
+import {DeleteOutlined, EditOutlined} from '@ant-design/icons';
+import TextArea from 'antd/lib/input/TextArea';
 
 import { URLCategory, WEB_SERVER_URL } from '../functions/constants';
-import TextArea from 'antd/lib/input/TextArea';
 
 function Categories() {
 
@@ -28,12 +28,14 @@ function Categories() {
         const style = {
           fontWeight: 600,
           paddingLeft: 8,
+          width: '80px',
+          height: '80px'
         }
         if(!text) {
           text='/images/noImage.jpg'
         }
         return <div style={style}>
-        <img src={`${WEB_SERVER_URL}${text}`} style={{width: '100%'}} alt=''></img>
+        <img src={`${WEB_SERVER_URL}${text}`} style={{width: '100%', height: '100%'}} alt=''></img>
         </div>
       }
     },
@@ -66,8 +68,8 @@ function Categories() {
         return <div style={{paddingLeft: 8, fontWeight: 600}}>Thao tác</div>
       }),
       key: 'actions',
-      width: '12%',
-      // fixed: 'right',
+      width: '9%',
+      fixed: 'right',
       render: (record) => {
         return (
           <div 
@@ -86,17 +88,26 @@ function Categories() {
                    }
                    if(info.file.status === 'done'){
                       setRefresh(e =>!e)
-                       message.success(`${info.file.name} file uploaded successfully`);
+                       message.success(`${info.file.name} được cập nhật thành công!`);
                    } else if(info.file.status === 'error') {
                  message.error(`${info.file.name} file upload failed.`);
                    }
                }}
            >
-           <Button icon={<UploadOutlined />} type='primary'  />
+           <Button 
+            // type='primary'
+            title='Cập nhật ảnh'  
+            icon={ <img src= {urlIcon} width='32px' height='32px' alt='test' background-color='green'/>}
+
+            style={{backgroundColor: '#1890ff'}}
+            >
+             
+            </Button>
            </Upload>
             <Button
             icon={<EditOutlined />}
             type='primary' 
+            title='Chỉnh sửa'
             onClick= {() => {
               setIsModalOpen(true)
               setSelectedId(record._id)
@@ -125,6 +136,7 @@ function Categories() {
                 icon={<DeleteOutlined />}
                 type='danger' style={{fontWeight: 600}}
                 onClick= {() => {}}
+                title='Xóa'
               >
               </Button>
             </Popconfirm>
@@ -134,7 +146,6 @@ function Categories() {
       }
     }
   ]
-
   const [categories, setCategories] = useState([])
   const [refresh, setRefresh] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -142,6 +153,9 @@ function Categories() {
 
   const [createForm] = Form.useForm()
   const [updateForm] = Form.useForm()
+
+  const urlIcon= './imageIcons/icon03.png'
+
 
   const handleOk  = () =>{
     updateForm.submit()
@@ -238,7 +252,7 @@ function Categories() {
     bordered
     size='small'
     // scroll={{x:1300, y: 400}}
-    scroll={{ y: 300}}
+    scroll={{ y: 300, x:1500}}
     title={() => {
       return <div style={{textAlign:'center', fontWeight: 600}}>DANH SÁCH DANH MỤC HÀNG HÓA</div>
     }}
@@ -250,6 +264,7 @@ function Categories() {
       open={isModalOpen} 
       onOk={handleOk} 
       onCancel={handleCancel}
+      width= {800}
     >
     <Form
       form={updateForm}
@@ -258,7 +273,7 @@ function Categories() {
         span: 8,
       }}
       wrapperCol={{
-        span: 16,
+        span: 24,
       }}
       initialValues={{
         name: "",
@@ -311,8 +326,9 @@ function Categories() {
         style={{fontWeight: 600}}
 
       >
-        <Input placeholder='Mô tả danh mục mới'/>
+        <TextArea rows={3} placeholder='Mô tả danh mục mới'/>
       </Form.Item>
+
     </Form>
       </Modal>
     </Content>
