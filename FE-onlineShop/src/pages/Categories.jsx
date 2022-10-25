@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 
-import axios, { AxiosError } from 'axios';
+import axios from 'axios';
 
 import {
   Button, Layout, Table, Form, Input,
@@ -15,6 +15,18 @@ import TextArea from 'antd/lib/input/TextArea';
 import { URLCategory, WEB_SERVER_URL } from '../functions/constants';
 
 function Categories() {
+
+  const[ uploading, setUploading] = useState(false)
+  const [file, setFile] = useState(null)
+  const [categories, setCategories] = useState([])
+  const [refresh, setRefresh] = useState(false)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [selectedId, setSelectedId] = useState(null)
+
+  const [createForm] = Form.useForm()
+  const [updateForm] = Form.useForm()
+
+  const urlIcon= './imageIcons/icon03.png'
 
   const columns =[
     {
@@ -110,37 +122,21 @@ function Categories() {
             title='Chỉnh sửa'
             onClick= {() => {
 
-              const savedUrl1 = [{
+              const savedUrl = [{
                 uid: '-1',
                 // name: 'file-1666626683993.jpeg',
                 status: 'done',
                 url:`${WEB_SERVER_URL}${record.imageUrl}`,
                 thumbUrl: `${WEB_SERVER_URL}${record.imageUrl}`
                 }]
-
 
               setIsModalOpen(true)
               setSelectedId(record._id)
-              setSavedUrl((e) => {
-                //If the category doesn't have field imageUrl
-                if(! record.imageUrl) {
-                  return ;
-                }
-                //else
-                const savedUrl = [{
-                uid: '-1',
-                // name: 'file-1666626683993.jpeg',
-                status: 'done',
-                url:`${WEB_SERVER_URL}${record.imageUrl}`,
-                thumbUrl: `${WEB_SERVER_URL}${record.imageUrl}`
-                }]
-                return savedUrl
-                })
+
               updateForm.setFieldsValue({
                 'name': record.name,
                  'description': record.description, 
-                //  'file' : record.imageUrl ? `${WEB_SERVER_URL}${record.imageUrl}`: 'no image'
-                 'file': record.imageUrl ? savedUrl1: []
+                 'file': record.imageUrl ? savedUrl: []
                  })
             }}
             >
@@ -175,35 +171,72 @@ function Categories() {
       }
     }
   ]
+// //
+//   const validateMessages ={
+//     required: "'${name}' is required!"
+//   };
 
-  const[ uploading, setUploading] = useState(false)
-  const [file, setFile] = useState(null)
-  const [fileList, setFileList] = useState([])
-  const [savedUrl, setSavedUrl] = useState([])
-  const [categories, setCategories] = useState([])
-  const [refresh, setRefresh] = useState(false)
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [selectedId, setSelectedId] = useState(null)
-
-  const [createForm] = Form.useForm()
-  const [updateForm] = Form.useForm()
-
-  const urlIcon= './imageIcons/icon03.png'
 
   const normFile =(e) =>{
     if(Array.isArray(e)){
       return e;
     }
-    // setFile(e?.fileList.slice(-1));
     return e?.fileList.slice(-1);
   }
+//
 
   const handleOk  = () =>{
     updateForm.submit()
   }
+  //
+
   const handleCancel = () => {
     setIsModalOpen(false)
+    setFile(null)
   }
+//
+  const handleFinishCreate = (values) =>{
+        //SUBMIT
+        let formData = null;
+        let newData = values;
+        let URL =  URLCategory + '/insertWithoutImage'
+       
+       //If containing an image <=> file !== null
+        if(file) {
+          URL =  URLCategory +'/insertWithImage'
+
+          formData = new FormData();
+          formData.append('file', file);
+          formData.append('name', values.name);
+          formData.append('description', values.description);
+          newData = formData;
+        }
+        
+        //POST
+        axios.post( URL, newData)
+        .then(response => {
+          if(response.status === 201) {
+            setRefresh(e => !e)
+            if(file) {
+                setFile(null)
+            }
+            createForm.resetFields()
+            notification.info({message: 'Thông báo', description: 'Thêm mới thành công'})
+          }
+        })
+        .catch((error) => {
+            const errorText = {name: error.response.data.error.name, 
+                              message : error.response.data.error.message
+                            }
+            notification.info({message: errorText.name, description: errorText.message})
+          })
+        .finally(() =>{
+          setUploading(false);
+        })    
+   }
+
+
+
 
   useEffect(()=>{
     axios.get(URLCategory)
@@ -211,6 +244,8 @@ function Categories() {
      setCategories(response.data.result)
     })
   },[refresh])
+//
+
   return (
     <Layout>
     <Content style={{padding: 24}}>
@@ -227,44 +262,7 @@ function Categories() {
         name: "",
         description: ''
       }}
-      onFinish={(values) => {
-        //SUBMIT
-        let formData = null;
-        let newData = values;
-       
-       //If containing an image <=> file !== null
-        if(file) {
-        formData = new FormData();
-        formData.append('file', file);
-        formData.append('name', values.name);
-        formData.append('description', values.description);
-        newData = formData;
-        }
-        
-
-        let URL =  URLCategory + '/insertWithoutImage'
-        if(file) {
-        URL =  URLCategory +'/insertWithImage'
-        }
-        //POST
-        axios.post( URL, newData)
-        .then(response => {
-          if(response.status === 201) {
-            setRefresh(e => !e)
-            if(file) {
-                setFile(null)
-            }
-            createForm.resetFields()
-            notification.info({message: 'Thông báo', description: 'Thêm mới thành công'})
-          }
-        })
-        .catch(() =>{
-          message.error('Tải hình ảnh thất bại.');
-        })
-        .finally(() =>{
-          setUploading(false);
-        })
-      }}
+      onFinish={handleFinishCreate}
       onFinishFailed={(error) => {
         console.error(error)
       }}
@@ -295,18 +293,24 @@ function Categories() {
       </Form.Item>
       
       <Form.Item 
-        valuePropName = 'imageUrl'
-        label='Hình minh họa' name='file'
+        label='Hình minh họa' 
+        name='file'
         style={{fontWeight: 600}}
+        valuePropName = 'fileList'
+        //Handling update fileList
+        getValueFromEvent= {normFile}
         >
         <Upload
           listType = 'picture'
           showUploadList ={true}
-          beforeUpload= {(file) =>{
+          beforeUpload= {
+            (file) =>{
             setFile(file);
             return false;
           }}
-          maxCount= {1}
+          onRemove= {(file) =>{
+            setFile(null)
+          }}
         >
           <Button icon= {<UploadOutlined/>} 
           loading={uploading}
@@ -369,30 +373,28 @@ function Categories() {
         }}
         onFinish={(values) => {
           //SUBMIT
-          let formData = null;
-          let newData = values;
+        let formData = null;
+        let newData = values;
+        let URL =  URLCategory + '/updateByIdWithoutImage/' + selectedId
        //If containing an image <=> file !== null
        if(file) {
+        URL =  URLCategory + '/updateByIdWithImage/' + selectedId
         formData = new FormData();
         formData.append('file', file);
         formData.append('name', values.name);
         formData.append('description', values.description);
         newData = formData;
         }
-        let URL =  URLCategory + '/insertWithoutImage'
-        if(file) {
-        URL =  URLCategory +'/insertWithImage'
-        }
         //POST
-
-        
-          // try{
-            axios.patch( URLCategory +'/updateById/' + selectedId, values)
-          .then(response => {
+        axios.patch( URL, newData)
+        .then(response => {
             if(response.status === 200) {
-              // console.log(response.data)
               setIsModalOpen(false)
               setRefresh(e => !e)
+              setSelectedId(null)
+              if(file) {
+                setFile(null)
+              }
               notification.info({message: 'Thông báo', description: 'Cập nhật thành công'})
             }
           })
@@ -402,8 +404,10 @@ function Categories() {
                               message : error.response.data.error.message
                             }
             notification.info({message: errorText.name, description: errorText.message})
-              console.log(errorText)
           })
+          .finally(() =>{
+          setUploading(false);
+        })
         }}
         onFinishFailed={(error) => {
           console.error(error)
@@ -416,10 +420,9 @@ function Categories() {
           rules={[
             {
               required: true,
-              message: 'Vui lòng nhập tên danh mục!',
+              message: 'Vui lòng nhập tên danh mục.',
             },
           ]}
-          style={{fontWeight: 600}}
           hasFeedback
         >
           <Input placeholder='Tên danh mục mới'/>
@@ -436,10 +439,10 @@ function Categories() {
 
         <Form.Item 
           // valuePropName = 'defaultFileList'
-          valuePropName = 'fileList'
           label='Hình minh họa'
           name='file'
           style={{fontWeight: 600}}
+          valuePropName = 'fileList'
           //Handling update fileList
           getValueFromEvent= {normFile}
           >
@@ -451,8 +454,6 @@ function Categories() {
             
               return false;
             }}
-            // maxCount= {1}
-            // fileList={fileList}
           >
             <Button icon= {<UploadOutlined/>} 
             loading={uploading}

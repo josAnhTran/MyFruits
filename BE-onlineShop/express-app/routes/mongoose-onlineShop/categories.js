@@ -1,9 +1,14 @@
 var express = require('express');
-const multer = require('multer');
+
 const {default: mongoose} = require ('mongoose')
 const Category = require('../../model/Category')
 const { ObjectId } = require('mongodb');
 var router = express.Router();
+
+const multer = require('multer');
+const upload = require('multer')();
+const createCategoryImage = require('../../helpers/multers/multerCategory');
+
 
 mongoose.connect('mongodb://127.0.0.1:27017/online-shop')
 
@@ -26,7 +31,6 @@ const { validateSchema,
    search_deleteManyCategoriesSchema,
    
   } = require('../../helpers/schemas/schemasCategoriesOnlineShop.yup');
-const createCategoryImage = require('../../helpers/multers/multerCategory');
 const { formatterErrorFunc } = require('../../helpers/formatterError');
 const { json } = require('express');
 //
@@ -159,7 +163,6 @@ router.post('/insertWithoutImage', async ( req, res, next) => {
         const categoryId = req.params.id;
         const imageUrl = `/images/categories/${categoryId}/${req.file.filename}`;
         const newData = {...req.body, imageUrl};
-        console.log({showme: newData})
         //Mongoose
         const opts= {runValidators: true}
         const category = await Category.findByIdAndUpdate(categoryId, newData, opts);
@@ -174,12 +177,8 @@ router.post('/insertWithoutImage', async ( req, res, next) => {
 //
 
  //Update One with _Id WITHOUT image
- router.patch('/updateByIdWithoutImage/:id', async(req, res, next) => {
-  // res.json({resultFormData: JSON.stringify(req.body.name)});
-  res.json(req.body)
-  return
-  try{
-    
+ router.patch('/updateByIdWithoutImage/:id',upload.any() ,async(req, res, next) => {
+  try{ 
     const {id} = req.params;
     const updateData = req.body;
     console.log({test: updateData})
