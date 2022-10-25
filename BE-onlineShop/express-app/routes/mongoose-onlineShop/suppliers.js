@@ -19,7 +19,6 @@ const {
   updateDocument, updateDocuments,
   findOne,findDocuments,
   deleteMany,deleteOneWithId,
-  formatterErrorFunc
   } = require("../../helpers/MongoDBOnlineShop");
 const { validateSchema,
         search_deleteWithId,
@@ -28,35 +27,16 @@ const { validateSchema,
         insertManySuppliersSchema,
         updateOneSupplierSchema,
         updateManySupplierSchema,
-} = require('../../helpers/schemasSuppliersOnlineShop.yup');
-const createSupplierImage = require('../../helpers/multerHelper');
+} = require('../../helpers/schemas/schemasSuppliersOnlineShop.yup');
+const createSupplierImage = require('../../helpers/multers/multerSupplier');
+const { formatterErrorFunc } = require('../../helpers/formatterError');
 
-
-router.post('/uploadFile/:id', function (req, res, next) {
-  createSupplierImage(req, res, function (err) {
-    if (err instanceof multer.MulterError) {
-      res.status(500).json({ type: 'MulterError', err: err });
-    } else if (err) {
-      res.status(500).json({ type: 'UnknownError', err: err });
-    } else {
-      const supplierId = req.params.id;
-      const imageUrl = `/images/suppliers/${supplierId}/${req.file.filename}`;
-
-      // MONGODB
-      updateDocument({_id: ObjectId(supplierId)}, { imageUrl: imageUrl }, COLLECTION_NAME)
-      .then(result => {
-        res.status(201).json({update: true, result: result})
-      })
-      .catch(err => res.json({update: 'UnSuccessful when update image for the supplier'}))
-    }
-  });
-});
 
 //Get all suppliers
 router.get('/', async(req, res, next) =>{
   try{
-    const suppliers = await Supplier.find();
-    res.json(suppliers);
+    const suppliers = await Supplier.find().sort({'_id': -1});
+    res.json({ ok: true, result: suppliers });
   } catch(err) {
     res.status(400).json({ error: { name: err.name, message: err.message } })
   }
@@ -68,7 +48,7 @@ router.get('/search/:id', async (req, res, next) => {
     const {id} = req.params;
     const supplier = await Supplier.findById(id);
     //the same:  const supplier = await Supplier.findOne({ _id: id });
-    res.json(supplier);
+    res.json({ ok: true, result: supplier });
   }catch(err) {
     res.status(400).json({ error: { name: err.name, message: err.message } })
   }
@@ -90,11 +70,12 @@ router.post('/insert', async (req, res, next) =>{
     const supplier = new Supplier(data)
     //Insert the product in our MongoDB database
     await supplier.save();
-    res.status(201).json(supplier);
+      res.status(201).json({ok: true, result: supplier})
     
   }catch(err) {
-    const messageError = formatterErrorFunc(err)
+    const messageError = formatterErrorFunc(err, COLLECTION_NAME)
     res.status(400).json({error: messageError})
+
   }
 })
 
@@ -111,18 +92,21 @@ router.post('/insert', async (req, res, next) =>{
  })
 //
 
- //Update One with _Id
- router.patch('/update-one/:id', async(req, res, next) => {
+ //Update One with _Id WITHOUT image
+ router.patch('/updateWithoutImage/:id', async(req, res, next) => {
   try{
     const {id} = req.params;
     const updateData = req.body
+    console.log({showmeee: updateData})
     const opts= {runValidators: true}
 
     const supplier = await Supplier.findByIdAndUpdate(id, updateData, opts)
-    res.json(supplier)
+    res.json({ok: true, result: supplier})
+
   }catch(err) {
-    const messageError = formatterErrorFunc(err)
+    const messageError = formatterErrorFunc(err, COLLECTION_NAME)
     res.status(400).json({error: messageError})
+
   }
 })
 //

@@ -9,7 +9,6 @@ mongoose.connect('mongodb://127.0.0.1:27017/online-shop')
 
 const url= "mongodb://127.0.0.1:27017/"
 // const url= "mongodb://localhost:27017/"
-// const dbName= "online-shop"
 const COLLECTION_NAME= "categories"
 
 const {
@@ -17,7 +16,6 @@ const {
   updateDocument, updateDocuments,
   findOne,findDocuments,
   deleteMany,deleteOneWithId,
-  formatterErrorFunc
   } = require("../../helpers/MongoDBOnlineShop");
 const { validateSchema,
    insertOneCategorySchema, 
@@ -27,11 +25,13 @@ const { validateSchema,
    search_deleteWithId,
    search_deleteManyCategoriesSchema,
    
-  } = require('../../helpers/schemasCategoriesOnlineShop.yup');
-const createCategoryImage = require('../../helpers/multerHelper');
+  } = require('../../helpers/schemas/schemasCategoriesOnlineShop.yup');
+const createCategoryImage = require('../../helpers/multers/multerCategory');
+const { formatterErrorFunc } = require('../../helpers/formatterError');
 //
 
 router.post('/uploadFile/:id', function (req, res, next) {
+  
   createCategoryImage(req, res, function (err) {
     if (err instanceof multer.MulterError) {
       res.status(500).json({ type: 'MulterError', err: err });
@@ -39,8 +39,10 @@ router.post('/uploadFile/:id', function (req, res, next) {
       res.status(500).json({ type: 'UnknownError', err: err });
     } else {
       const categoryId = req.params.id;
-      const imageUrl = `/images/categories/${categoryId}/${req.file.filename}`;
-
+      let imageUrl = '';
+      if(req.file){
+        imageUrl = `/images/categories/${categoryId}/${req.file.filename}`;
+      }
       // MONGODB
       updateDocument({_id: ObjectId(categoryId)}, { imageUrl: imageUrl }, COLLECTION_NAME)
       .then(result => {
@@ -55,8 +57,8 @@ router.post('/uploadFile/:id', function (req, res, next) {
 //Get all categories
 router.get('/', async(req, res, next) =>{
   try{
-    const categories = await Category.find();
-    res.json(categories);
+    const categories = await Category.find().sort({'_id': -1});
+    res.json({ ok: true, result: categories });
   } catch(err) {
     res.status(400).json({ error: { name: err.name, message: err.message } })
   }
@@ -68,12 +70,13 @@ router.get('/search/:id', async (req, res, next) => {
     const {id} = req.params;
     const category = await Category.findById(id);
     //the same:  const category = await Category.findOne({ _id: id });
-    res.json(category);
+    res.json({ ok: true, result: category });
   }catch(err) {
     res.status(400).json({ error: { name: err.name, message: err.message } })
   }
 })
 
+//HAVEN'T USED YET
 router.get('/search-many', validateSchema(search_deleteManyCategoriesSchema), function(req, res, next) {
   const query= req.query;
   findDocuments({query: query}, COLLECTION_NAME)
@@ -82,27 +85,60 @@ router.get('/search-many', validateSchema(search_deleteManyCategoriesSchema), fu
 })
 //
 
-// Insert One 
-router.post('/insert', async ( req, res, next) => {
+// Insert One WITH an Image
+router.post('/insertWithImage', ( req, res, next) => {
+  // router.post('/insert', async ( req, res, next) => {
+  createCategoryImage(req, res, async function(err) {
+      try{
+        // await createCategoryImage(req, res, function(err) {
+        if (err instanceof multer.MulterError) {
+          res.status(500).json({ type: 'MulterError', err: err });
+          return;
+        } else if (err) {
+          res.status(500).json({ type: 'UnknownError', err: err });
+          return;
+        } else {
+          let subLocation = 'firstTimeCreate';
+          const imageUrl = `/images/categories/${subLocation}/${req.file.filename}`;
+          const newData = {...req.body, imageUrl};
+          
+          //Create a new blog post object
+          const category = new Category(newData);
+          //Insert the new category in our Mongodb database
+          //  await category.save();
+          await category.save();
+            res.status(201).json({ok: true, result: category})
+        }
+      }catch(err) {
+        const messageError = formatterErrorFunc(err, COLLECTION_NAME)
+        res.status(400).json({error: messageError})
+      }
+  })
+})
+    //
+    
+// Insert One WITHOUT An Image
+router.post('/insertWithoutImage', async ( req, res, next) => {
   try{
-    const data = req.body;
-    //Create a new blog post object
-    const category = new Category(data);
-    //Insert the product in our MongoDB database
-    await category.save();
-    res.status(201).json(category);
-  }catch(err) {
-    const messageError = formatterErrorFunc(err)
+        //Create a new blog post object
+        const category = new Category(req.body);
+        //Insert the new category in our Mongodb database
+      //  await category.save();
+       await category.save();
+      res.status(201).json({ok: true, result: category})
+  } catch(err) {
+    const messageError = formatterErrorFunc(err, COLLECTION_NAME)
     res.status(400).json({error: messageError})
   }
-})
+    })
 
+//HAVEN'T USED YET
  //Insert Many  -- haven't validation yet
  router.post('/insert-many', validateSchema(insertManyCategoriesSchema), function (req, res, next){
   const list = req.body;
   insertDocuments(list, COLLECTION_NAME)
   .then(result => {
-    res.status(200).json({ok: true, result: result})
+    res.status(201).json({ok: true, result})
   })
   .catch(err =>{
     res.json(500).json({ok:false})
@@ -110,20 +146,47 @@ router.post('/insert', async ( req, res, next) => {
  })
 //
 
- //Update One with _Id
- router.patch('/updateById/:id', async(req, res, next) => {
+ //Update One with _Id WITH image
+ router.patch('/updateByIdWithImage/:id', (req, res, next) => {
+  createCategoryImage(req, res, async function (err) {
+    try{
+      if (err instanceof multer.MulterError) {
+        res.status(500).json({ type: 'MulterError', err: err });
+      } else if (err) {
+        res.status(500).json({ type: 'UnknownError', err: err });
+      } else {
+        const categoryId = req.params.id;
+        const imageUrl = `/images/categories/${categoryId}/${req.file.filename}`;
+        const newData = {...req.body, imageUrl};
+        console.log({showme: newData})
+        //Mongoose
+        const opts= {runValidators: true}
+        const category = await Category.findByIdAndUpdate(categoryId, newData, opts);
+        res.json({ok: true, result: category})
+      }
+    }catch(err) {
+    const messageError = formatterErrorFunc(err, COLLECTION_NAME)
+    res.status(400).json({error: err})
+  }
+  });
+})
+//
+
+ //Update One with _Id WITHOUT image
+ router.patch('/updateByIdWithoutImage/:id', async(req, res, next) => {
   try{
     const {id} = req.params;
     const updateData = req.body;
     const opts= {runValidators: true}
     const category = await Category.findByIdAndUpdate(id, updateData, opts);
-    res.json(category)
+    res.json({ok: true, result: category})
   }catch(err) {
-    const messageError = formatterErrorFunc(err)
+    const messageError = formatterErrorFunc(err, COLLECTION_NAME)
     res.status(400).json({error: messageError})
   }
 })
 //
+
 
  //Update MANY 
  router.patch('/update-many',validateSchema(updateManyCategorySchema), function(req, res, next){

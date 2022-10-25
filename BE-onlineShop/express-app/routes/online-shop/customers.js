@@ -28,7 +28,7 @@ const { validateSchema,
     insertManyCustomersSchema,
     updateOneCustomerSchema,
     updateManyCustomersSchema,
-} = require('../../helpers/schemasCustomersOnlineShop.yup');
+} = require('../../helpers/schemas/schemasCustomersOnlineShop.yup');
 
 //Get all categories
 router.get('/', function(req, res, next) {

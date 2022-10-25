@@ -29,7 +29,7 @@ const { validateSchema,
         insertManyOrdersSchema,
         updateOneOrderSchema,
         updateManyOrderSchema,
-} = require('../../helpers/schemasOrdersOnlineShop.yup');
+} = require('../../helpers/schemas/schemasOrdersOnlineShop.yup');
 
 //Get all products
 router.get('/', function(req, res, next) {

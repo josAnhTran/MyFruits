@@ -26,7 +26,7 @@ const {
   insertManyProductsSchema,
   updateOneProductSchema,
   updateManyProductSchema,
-   } = require('../../helpers/schemasProductsOnlineShop.yup');
+   } = require('../../helpers/schemas/schemasProductsOnlineShop.yup');
 
 //Get all categories
 router.get('/', function(req, res, next) {

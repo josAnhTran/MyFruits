@@ -8,26 +8,6 @@ const { MongoClient, ObjectId } = require('mongodb');
 const DATABASE_NAME = 'online-shop'
 const CONNECTION_STRING= "mongodb://127.0.0.1:27017/" + DATABASE_NAME
 
-///Formatter Error Message
-const formatterErrorFunc = (err) =>{
-    let errors = {}
-    const errMessage = err.message
-    const error01 = errMessage.substring(errMessage.indexOf(':') +1).trim()
-    const errorSpilt = error01.split(':');
-    let [name, message] =error01.split(':').map((e) => e.trim())
-    switch (name) {
-      case 'name' :
-        name= 'Tên danh mục';
-        break;
-      case 'description' :
-        name= 'Mô tả danh mục';
-        break;
-    }
-    errors.name = name;
-    errors.message = message
-    return errors
-  }
-
 // FIND following id
 function findOne(id, collectionName, aggregate=[]){
     return new Promise((resolve, reject) => {
@@ -236,5 +216,4 @@ module.exports = {
     updateDocument, updateDocuments,
     findOne,findDocuments,
     deleteMany, deleteOneWithId,
-    formatterErrorFunc
             }

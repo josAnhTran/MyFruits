@@ -27,7 +27,7 @@ const { validateSchema,
     insertManyCustomersSchema,
     updateOneCustomerSchema,
     updateManyCustomersSchema,
-} = require('../../helpers/schemasCustomersOnlineShop.yup');
+} = require('../../helpers/schemas/schemasCustomersOnlineShop.yup');
 
 //Get all customers
 router.get('/', async(req, res, next) =>{
@@ -75,8 +75,7 @@ router.get('/search-many', validateSchema(search_deleteManyCustomersSchema), fun
       const customer = new Customer(data)
       //Insert the product in our MongoDB database
       await customer.save();
-      res.status(201).json(customer);
-      
+      res.status(201).json({ok: true, result: customer})
     }catch(err) {
       const messageError = formatterErrorFunc(err)
       res.status(400).json({error: messageError})

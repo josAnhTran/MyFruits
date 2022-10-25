@@ -29,7 +29,7 @@ const { validateSchema,
   updateOneEmployeeSchema,
   updateManyEmployeesSchema,
 
-} = require('../../helpers/schemasEmployeesOnlineShop.yup');
+} = require('../../helpers/schemas/schemasEmployeesOnlineShop.yup');
 const { date } = require('yup');
 
 //Get all categories

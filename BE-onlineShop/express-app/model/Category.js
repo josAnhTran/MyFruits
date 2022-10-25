@@ -8,7 +8,7 @@ const categorySchema = new Schema(
             type: String,
             trim: true,
             maxLength: [50, 'Tên danh mục không quá 50 kí tự!'],
-            // required: [true, 'Tên danh mục không được để trống']
+            required: [true, 'Tên danh mục không được để trống']
         },
         description: {
             type: String,

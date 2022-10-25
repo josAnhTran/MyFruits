@@ -24,7 +24,7 @@ const { validateSchema,
         insertManySuppliersSchema,
         updateOneSupplierSchema,
         updateManySupplierSchema,
-} = require('../../helpers/schemasSuppliersOnlineShop.yup');
+} = require('../../helpers/schemas/schemasSuppliersOnlineShop.yup');
 
 //Get all categories
 router.get('/', function(req, res, next) {

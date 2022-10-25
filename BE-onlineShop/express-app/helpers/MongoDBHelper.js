@@ -8,25 +8,6 @@ const { MongoClient, ObjectId } = require('mongodb');
 const DATABASE_NAME = 'api-training'
 const CONNECTION_STRING= "mongodb://127.0.0.1:27017/" + DATABASE_NAME
 
-//Formatter Error Message
-const formatterErrorFunc = (err) =>{
-    let errors = {}
-    const errMessage = err.message
-    const error01 = errMessage.substring(errMessage.indexOf(':') +1).trim()
-    const errorSpilt = error01.split(':');
-    let [name, message] =error01.split(':').map((e) => e.trim())
-    switch (name) {
-      case 'name' :
-        name= 'Tên danh mục';
-        break;
-      case 'description' :
-        name= 'Mô tả danh mục';
-        break;
-    }
-    errors.name = name;
-    errors.message = message
-    return errors
-  }
 
 
 //INSERT_ONE
@@ -267,6 +248,5 @@ module.exports = {
     insertDocument, insertDocuments,
     updateDocument, updateDocuments,
     findOne,findMany,
-    deleteALot,deleteOneWithId,
-    formatterErrorFunc
+    deleteALot,deleteOneWithId
             }

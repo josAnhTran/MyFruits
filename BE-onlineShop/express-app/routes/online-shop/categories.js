@@ -24,7 +24,7 @@ const { validateSchema,
    search_deleteWithId,
    search_deleteManyCategoriesSchema,
    
-  } = require('../../helpers/schemasCategoriesOnlineShop.yup');
+  } = require('../../helpers//schemas/schemasCategoriesOnlineShop.yup');
 
 
 // ///

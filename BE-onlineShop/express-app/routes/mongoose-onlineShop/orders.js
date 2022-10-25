@@ -28,7 +28,7 @@ const { validateSchema,
         insertManyOrdersSchema,
         updateOneOrderSchema,
         updateManyOrderSchema,
-} = require('../../helpers/schemasOrdersOnlineShop.yup');
+} = require('../../helpers/schemas/schemasOrdersOnlineShop.yup');
 const Supplier = require('../../model/Supplier');
 
 //Get all orders

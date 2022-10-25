@@ -28,7 +28,7 @@ const {
   insertManyProductsSchema,
   updateOneProductSchema,
   updateManyProductSchema,
-   } = require('../../helpers/schemasProductsOnlineShop.yup');
+   } = require('../../helpers/schemas/schemasProductsOnlineShop.yup');
 
 //BEGIN: MONGOOSE
 //Get all products
