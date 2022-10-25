@@ -28,6 +28,7 @@ const { validateSchema,
   } = require('../../helpers/schemas/schemasCategoriesOnlineShop.yup');
 const createCategoryImage = require('../../helpers/multers/multerCategory');
 const { formatterErrorFunc } = require('../../helpers/formatterError');
+const { json } = require('express');
 //
 
 router.post('/uploadFile/:id', function (req, res, next) {
@@ -166,7 +167,7 @@ router.post('/insertWithoutImage', async ( req, res, next) => {
       }
     }catch(err) {
     const messageError = formatterErrorFunc(err, COLLECTION_NAME)
-    res.status(400).json({error: err})
+    res.status(400).json({error: messageError})
   }
   });
 })
@@ -174,9 +175,14 @@ router.post('/insertWithoutImage', async ( req, res, next) => {
 
  //Update One with _Id WITHOUT image
  router.patch('/updateByIdWithoutImage/:id', async(req, res, next) => {
+  // res.json({resultFormData: JSON.stringify(req.body.name)});
+  res.json(req.body)
+  return
   try{
+    
     const {id} = req.params;
     const updateData = req.body;
+    console.log({test: updateData})
     const opts= {runValidators: true}
     const category = await Category.findByIdAndUpdate(id, updateData, opts);
     res.json({ok: true, result: category})

@@ -5,6 +5,12 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 
+// //Set up add data from form-data in POSTMAN
+// var bodyParser = require('body-parser')
+// var multer = require('multer');
+// var forms = multer();
+// //
+
 var passport = require('passport')
 var JwtStrategy = require('passport-jwt').Strategy
 var ExtractJwt = require('passport-jwt').ExtractJwt 
@@ -39,6 +45,12 @@ var employeesOnlineShopMongooseRouter = require('./routes/mongoose-onlineShop/em
 
 
 var app = express();
+// //Set up add data from form-data in POSTMAN
+// // Put these statements before you define any routes.
+// app.use(bodyParser.urlencoded());
+// app.use(forms.array()); 
+// app.use(bodyParser.json());
+// //
 
 app.use(cors({}))
 // view engine setup
