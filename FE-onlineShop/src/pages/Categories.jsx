@@ -13,6 +13,7 @@ import {DeleteOutlined, EditOutlined, UploadOutlined} from '@ant-design/icons';
 import TextArea from 'antd/lib/input/TextArea';
 
 import { URLCategory, WEB_SERVER_URL } from '../functions/constants';
+import LabelCustomization from './components/subComponents';
 
 function Categories() {
 
@@ -171,10 +172,66 @@ function Categories() {
       }
     }
   ]
-// //
-//   const validateMessages ={
-//     required: "'${name}' is required!"
-//   };
+//
+
+//Begin: Props for components
+    const PropsTable = {
+      style : {'marginTop': 20},
+      rowKey : '_id' ,
+      locale: {
+                triggerDesc: 'Giảm dần',
+                triggerAsc: 'Tăng dần', 
+                cancelSort: 'Hủy sắp xếp'
+              },
+      bordered: true,
+      size:'small',
+      scroll: {  x:1500, y: 300},
+      title: () => {
+        return <div style={{textAlign:'center', fontWeight: 600}}>DANH SÁCH DANH MỤC HÀNG HÓA</div>
+      },
+      footer: () => 'Nếu có vấn đề khi tương tác với hệ thống, xin vui lòng liên hệ số điện thoại 002233442'
+    }
+
+    const PropsForm = {
+      labelCol : {span: 8},
+      wrapperCol : {span: 16},
+      initialValues : { name: "", description: '', file: null},
+      autoComplete: "off"
+    }
+
+    const PropsFormItemName = {
+      label: <LabelCustomization title={'Tên danh mục'}/>,
+      name:"name",
+      rules: [
+                  {
+                    required: true,
+                    message: 'Vui lòng nhập tên danh mục!'
+                  },
+                  {
+                    max: 50,
+                    message: 'Tên danh mục không quá 50 kí tự!'
+                  },
+                ],
+      hasFeedback: true
+    }
+
+    const PropsFormItemDescription = {
+      label :<LabelCustomization title={"Mô tả danh mục"} />,
+      name:"description",
+      rules: [
+                {
+                  max: 500,
+                  message: 'Phần mô tả danh mục không quá 500 kí tự!'
+                },
+              ],
+    }
+
+    const PropsFormItemUpload = {
+      label: <LabelCustomization title={'Hình ảnh'} />,
+      name: 'file',
+      valuePropName : 'fileList'
+    }
+//End: Props for components
 
 
   const normFile =(e) =>{
@@ -235,7 +292,44 @@ function Categories() {
         })    
    }
 
-
+   const handleFinishUpdate = (values) => {
+    //SUBMIT
+  let formData = null;
+  let newData = {...values, imageUrl:null}
+  console.log({data: newData})
+  let URL =  URLCategory + '/updateByIdWithoutImage/' + selectedId
+ //If containing an image <=> file !== null
+ if(file) {
+  URL =  URLCategory + '/updateByIdWithImage/' + selectedId
+  formData = new FormData();
+  formData.append('file', file);
+  formData.append('name', values.name);
+  formData.append('description', values.description);
+  newData = formData;
+  }
+  //POST
+  axios.patch( URL, newData)
+  .then(response => {
+      if(response.status === 200) {
+        setIsModalOpen(false)
+        setRefresh(e => !e)
+        setSelectedId(null)
+        if(file) {
+          setFile(null)
+        }
+        notification.info({message: 'Thông báo', description: 'Cập nhật thành công'})
+      }
+    })
+    .catch((error) => {
+      const errorText = {name: error.response.data.error.name, 
+                        message : error.response.data.error.message
+                      }
+      notification.info({message: errorText.name, description: errorText.message})
+    })
+    .finally(() =>{
+    setUploading(false);
+  })
+  }
 
 
   useEffect(()=>{
@@ -250,53 +344,24 @@ function Categories() {
     <Layout>
     <Content style={{padding: 24}}>
     <Form
+      {...PropsForm}
       form={createForm}
       name="createForm"
-      labelCol={{
-        span: 4,
-      }}
-      wrapperCol={{
-        span: 16,
-      }}
-      initialValues={{
-        name: "",
-        description: ''
-      }}
       onFinish={handleFinishCreate}
       onFinishFailed={(error) => {
-        console.error(error)
+        console.error({name: 'Error at onFinishFailed at CreateForm', message: error})
       }}
-      autoComplete="off"
      >
-      <Form.Item
-        label="Tên danh mục"
-        name="name"
-        rules={[
-          {
-            required: true,
-            message: 'Vui lòng nhập tên danh mục!',
-          },
-        ]}
-        style={{fontWeight: 600}}
-        hasFeedback
-      >
+      <Form.Item {...PropsFormItemName} >
         <Input placeholder='Tên danh mục mới'/>
       </Form.Item>
 
-      <Form.Item
-        label="Mô tả danh mục mới"
-        name="description"
-        style={{fontWeight: 600}}
-
-      >
+      <Form.Item {...PropsFormItemDescription} >
         <TextArea rows={3} placeholder='Mô tả danh mục mới'/>
       </Form.Item>
       
       <Form.Item 
-        label='Hình minh họa' 
-        name='file'
-        style={{fontWeight: 600}}
-        valuePropName = 'fileList'
+        {...PropsFormItemUpload}
         //Handling update fileList
         getValueFromEvent= {normFile}
         >
@@ -312,7 +377,8 @@ function Categories() {
             setFile(null)
           }}
         >
-          <Button icon= {<UploadOutlined/>} 
+          <Button 
+          icon= {<UploadOutlined/>} 
           loading={uploading}
           >Tải ảnh</Button>
         </Upload>
@@ -320,7 +386,7 @@ function Categories() {
 
       <Form.Item
         wrapperCol={{
-          offset: 4,
+          offset: 8,
           span: 16,
         }}
       >
@@ -330,24 +396,10 @@ function Categories() {
       </Form.Item>
     </Form>
     <Table 
-    style={{marginTop: 20}} 
-    rowKey='_id' 
-    columns={columns} 
-    dataSource={categories} 
-    pagination ={false}
-    locale={{ 
-          triggerDesc: 'Giảm dần',
-          triggerAsc: 'Tăng dần', 
-          cancelSort: 'Hủy sắp xếp'
-      }}
-    bordered
-    size='small'
-    // scroll={{x:1300, y: 400}}
-    scroll={{ y: 300, x:1500}}
-    title={() => {
-      return <div style={{textAlign:'center', fontWeight: 600}}>DANH SÁCH DANH MỤC HÀNG HÓA</div>
-    }}
-    footer={() => 'Nếu có vấn đề khi tương tác với hệ thống, xin vui lòng liên hệ số điện thoại 002233442'}
+      {...PropsTable}
+      columns={columns} 
+      dataSource={categories} 
+      pagination ={false}
     />
 
     <Modal 
@@ -358,91 +410,25 @@ function Categories() {
       width= {800}
     >
       <Form
+        {...PropsForm}
         form={updateForm}
         name="updateForm"
-        labelCol={{
-          span: 8,
-        }}
-        wrapperCol={{
-          span: 24,
-        }}
-        initialValues={{
-          name: "",
-          description: '',
-          file: ''
-        }}
-        onFinish={(values) => {
-          //SUBMIT
-        let formData = null;
-        let newData = values;
-        let URL =  URLCategory + '/updateByIdWithoutImage/' + selectedId
-       //If containing an image <=> file !== null
-       if(file) {
-        URL =  URLCategory + '/updateByIdWithImage/' + selectedId
-        formData = new FormData();
-        formData.append('file', file);
-        formData.append('name', values.name);
-        formData.append('description', values.description);
-        newData = formData;
-        }
-        //POST
-        axios.patch( URL, newData)
-        .then(response => {
-            if(response.status === 200) {
-              setIsModalOpen(false)
-              setRefresh(e => !e)
-              setSelectedId(null)
-              if(file) {
-                setFile(null)
-              }
-              notification.info({message: 'Thông báo', description: 'Cập nhật thành công'})
-            }
-          })
-          // } 
-          .catch((error) => {
-            const errorText = {name: error.response.data.error.name, 
-                              message : error.response.data.error.message
-                            }
-            notification.info({message: errorText.name, description: errorText.message})
-          })
-          .finally(() =>{
-          setUploading(false);
-        })
-        }}
+        onFinish={handleFinishUpdate}
         onFinishFailed={(error) => {
-          console.error(error)
+          console.error({name: 'Error at onFinishFailed at UpdateForm', message: error})
         }}
-        autoComplete="off"
+
       >
-        <Form.Item
-          label="Tên danh mục"
-          name="name"
-          rules={[
-            {
-              required: true,
-              message: 'Vui lòng nhập tên danh mục.',
-            },
-          ]}
-          hasFeedback
-        >
-          <Input placeholder='Tên danh mục mới'/>
+        <Form.Item {...PropsFormItemName} >
+          <Input placeholder='Tên danh mục '/>
         </Form.Item>
 
-        <Form.Item
-          label="Mô tả danh mục mới"
-          name="description"
-          style={{fontWeight: 600}}
-
-        >
-          <TextArea rows={3} placeholder='Mô tả danh mục mới'/>
+        <Form.Item  {...PropsFormItemDescription} >
+          <TextArea rows={3} placeholder='Mô tả danh mục '/>
         </Form.Item>
 
         <Form.Item 
-          // valuePropName = 'defaultFileList'
-          label='Hình minh họa'
-          name='file'
-          style={{fontWeight: 600}}
-          valuePropName = 'fileList'
+          {...PropsFormItemUpload}
           //Handling update fileList
           getValueFromEvent= {normFile}
           >
@@ -451,16 +437,18 @@ function Categories() {
             showUploadList ={true}
             beforeUpload= {(file) =>{
               setFile(file);
-            
               return false;
             }}
+            onRemove= {(file) =>{
+            setFile(null)
+          }}
           >
-            <Button icon= {<UploadOutlined/>} 
+            <Button 
+            icon= {<UploadOutlined/>} 
             loading={uploading}
             >Tải ảnh</Button>
           </Upload>
         </Form.Item>
-
       </Form>
       </Modal>
     </Content>
