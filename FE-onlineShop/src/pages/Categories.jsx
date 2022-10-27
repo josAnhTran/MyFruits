@@ -24,6 +24,8 @@ function Categories() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedId, setSelectedId] = useState(null)
   const [currentImageUrl, setCurrentImageUrl] = useState(null)
+  const [isChangedImage, setIsChangedImage] = useState(false)
+  const [isChangeValueUpload, setIsChangeValueUpload] = useState(false)
 
   const [createForm] = Form.useForm()
   const [updateForm] = Form.useForm()
@@ -127,7 +129,7 @@ function Categories() {
 
               const savedUrl = [{
                 uid: '-1',
-                // name: 'file-1666626683993.jpeg',
+                name: 'IMG_0693.JPG',
                 status: 'done',
                 url:`${WEB_SERVER_URL}${record.imageUrl}`,
                 thumbUrl: `${WEB_SERVER_URL}${record.imageUrl}`
@@ -136,6 +138,8 @@ function Categories() {
               setIsModalOpen(true)
               setSelectedId(record._id)
               setCurrentImageUrl(record.imageUrl ? record.imageUrl: null)
+              setIsChangedImage(false)
+              setIsChangeValueUpload(false)
 
               updateForm.setFieldsValue({
                 'name': record.name,
@@ -150,7 +154,7 @@ function Categories() {
               title='Bạn muốn xóa không ?' 
               okText= 'Đồng ý'
               cancelText= 'Đóng'
-              onConfirm={() =>{
+              onConfirm={(values) =>{
                 const {_id} = record
                   axios.delete(URLCategory+ '/delete-id/' + _id)
                   .then(response => {
@@ -238,9 +242,11 @@ function Categories() {
 
 
   const normFile =(e) =>{
+    setIsChangeValueUpload(true)
     if(Array.isArray(e)){
       return e;
     }
+    // setFile( e?.fileList.slice(-1))
     return e?.fileList.slice(-1);
   }
 //
@@ -298,8 +304,9 @@ function Categories() {
    const handleFinishUpdate = (values) => {
     //SUBMIT
   let formData = null;
-  let newData = {...values, imageUrl: currentImageUrl}
-  console.log({data: newData})
+  let isChangedImageUrl = true
+  if((!isChangeValueUpload)&&(!isChangedImage)) {isChangedImageUrl = false}
+  let newData = {...values, imageUrl: currentImageUrl, isChangedImageUrl: isChangedImageUrl}
   let URL =  URLCategory + '/updateByIdWithoutImage/' + selectedId
  //If containing an image <=> file !== null
  if(file) {
@@ -318,6 +325,8 @@ function Categories() {
         setIsModalOpen(false)
         setRefresh(e => !e)
         setSelectedId(null)
+        setIsChangedImage(false)
+        setIsChangeValueUpload(false)
         if(file) {
           setFile(null)
         }
@@ -440,6 +449,7 @@ function Categories() {
             listType = 'picture'
             showUploadList ={true}
             beforeUpload= {(file) =>{
+              setIsChangedImage(true)
               setFile(file);
               return false;
             }}

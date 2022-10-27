@@ -285,13 +285,18 @@ router.patch('/updateByIdWithImage/:id', (req, res, next) => {
     const {id} = req.params;
     const updateData = {...req.body};
     const currentImageUrl = req.body.imageUrl
+    const {isChangedImageUrl} =req.body
+    console.log('testsss:', isChangedImageUrl)
+    //Delete key isChangeImage from data before update in MongoDB
+    delete updateData.isChangedImageUrl;
     const opts= {runValidators: true}
-    //--Because client don't want use image, means, field imageUrl = null, so that:
-    updateData.imageUrl= null
+    //--Because client don't want use image, means, field imageUrl = null
+    //But, if the client not change image Upload, then keeping the old imageUrl
+     if(isChangedImageUrl) updateData.imageUrl=  null
     //--Update in Mongodb
     const category = await Category.findByIdAndUpdate(id, updateData, opts);
     //--If currentImageUrl= null, means that the user haven't have image before, then: do nothing
-    if((currentImageUrl === null)|currentImageUrl === 'null'){
+    if((currentImageUrl === null)||(currentImageUrl === 'null') || (!isChangedImageUrl)){
       // console.log({ok: true, message: "The client doesn't have an image before now" , result: category})
       res.json({ok: true, result: category})
     }else{
@@ -338,6 +343,7 @@ router.get('/', async(req, res, next) =>{
   }
 })
 //
+
 
 //FUNCTION NOT STILL USE----------------------------------------------------------------------------------------------------------------------------------
 
@@ -386,47 +392,84 @@ router.get('/', async(req, res, next) =>{
 //  })
 //
 
-//HAVEN'T USED YET
+//Delete file from DiskStorage
+// router.delete('/delete-file/:id', async (req, res, next) => {
+//   // router.delete('/delete-file/:id',  (req, res, next) => {
+//   try{
+//     const {id} = req.params;
+//     const category = await Category.findById(id);
+//     console.log({status: true, message: 'we have got data of a category with id from req.params'})
+//     const directoryPath ='./public' +( category.imageUrl ? category.imageUrl: '');
+//     try{
+//       //delete file image Synchronously
+//       fs.unlinkSync(directoryPath);
+//       console.log({message: 'File Image is delete from DiskStorage '})
+
+//       //handling remove the field imageUrl after delete the picture of this id
+//       removeFieldById(ObjectId(id), {imageUrl: ''}, COLLECTION_NAME)
+//       .then(result => {
+//         res.status(201).json({removing : true, message: 'Remove field imageUrl successful', result: result})
+//       })
+//       .catch(err => res.json({update: false}))
+
+//     }catch(err){
+//       res.status(500).json({ message: "Could not delete the file. " + err})
+//     }
+//   }catch(err) {
+//     res.status(400).json({ error: { name: err.name, message: err.message } })
+//   }
+// })
+//
+
+//HAVEN'T USED YET------------------------------------------------------------------------------------
 
 
- 
 
- 
+// router.delete('/delete-id/:id', async(req, res, next) => {
+//   try{
+//     const {id} = req.params;
 
-//Delete file
-router.delete('/delete-file/:id', async (req, res, next) => {
-  // router.delete('/delete-file/:id',  (req, res, next) => {
-  try{
-    const {id} = req.params;
-    const category = await Category.findById(id);
-    console.log({status: true, message: 'we have got data of a category with id from req.params'})
-    const directoryPath ='./public' +( category.imageUrl ? category.imageUrl: '');
-    try{
-      //delete file image Synchronously
-      fs.unlinkSync(directoryPath);
-      console.log({message: 'File Image is delete from DiskStorage '})
-
-      //handling remove the field imageUrl after delete the picture of this id
-      removeFieldById(ObjectId(id), {imageUrl: ''}, COLLECTION_NAME)
-      .then(result => {
-        res.status(201).json({removing : true, message: 'Remove field imageUrl successful', result: result})
-      })
-      .catch(err => res.json({update: false}))
-
-    }catch(err){
-      res.status(500).json({ message: "Could not delete the file. " + err})
-    }
-  }catch(err) {
-    res.status(400).json({ error: { name: err.name, message: err.message } })
-  }
-})
+//     const deleteCategory = await Category.findByIdAndDelete(id);
+//     res.status(200).json(deleteCategory)
+//   }catch(err) {
+//     res.status(400).json({error: {name: err.name, message: err.message}});
+//   }
+// })
+// fs.rmSync(dir, { recursive: true, force: true });
 
 //Delete ONE with ID
 router.delete('/delete-id/:id', async(req, res, next) => {
   try{
     const {id} = req.params;
+    console.log({body: req.params})
 
     const deleteCategory = await Category.findByIdAndDelete(id);
+    console.log({ok: true, message: 'delete all data of the ID from MongoDB successfully'})
+    // Delete the folder containing image of the account
+    // try{
+    //   if(fs.existsSync(currentDirectoryPath)) {
+    //     //If existing, removing the former uploaded image from DiskStorage  
+    //     try{
+    //       //delete file image Synchronously
+    //       fs.unlinkSync(currentDirectoryPath);
+    //       console.log({message: 'File Image is delete from DiskStorage, update processing succeeded '})
+    //       res.json({ok: true, message: 'Update imageUrl and other data successfully', result: category})
+    //     }
+    //     catch(err){
+    //       console.error({ok: false, message: "Could not delete the old uploaded file. ", "detailed_error": err})
+    //       res.json({ok: true,warning: 'The old uploaded file cannot delete', message: 'Update imageUrl and other data successfully', result: category})
+    //     }
+    //   }
+    //   else{
+    //     res.json({ok: true,warning: 'Not existing the old uploaded image in DiskStorage', message: 'Update imageUrl and other data successfully', result: category})
+
+    //   }
+    // } 
+  //   catch( err) {
+  //   console.error({ok:false, message: "Check the former uploaded image existing unsuccessfully ", err: err})
+  //   res.json({ok:false, warning: "Check the former uploaded image existing unsuccessfully, can not delete it" , message: "Check the former uploaded image existing unsuccessfully ", err: err})
+  //   }
+  //  //Remove the folder 
     res.status(200).json(deleteCategory)
   }catch(err) {
     res.status(400).json({error: {name: err.name, message: err.message}});
