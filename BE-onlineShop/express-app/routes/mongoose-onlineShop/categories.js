@@ -62,6 +62,9 @@ const { ok } = require('assert');
   })
 
   const uploadImage = multer({ storage: storage}).single('file')
+
+
+  
   // router.post('/api/photo', uploadImage, async (req, res) =>{
 router.post('/uploadFile/:id', function (req, res, next) {
   
@@ -215,8 +218,8 @@ router.post('/insertWithoutImage', async ( req, res, next) => {
         //If update new data(containing the link of the new Image) in Mongodb successfully, then...
         console.log({ok: true, message: 'Update imageUrl and other data in Mongodb successfully ', result: category})
         if(currentImageUrl === 'null'){
-          console.log({ok: true, "more_detail": 'The first time user update his image' ,message: 'Update imageUrl and other data successfully', result: category})
-          res.json({ok: true, "more_detail": 'The first time user update his image' ,message: 'Update imageUrl and other data successfully', result: category})
+          console.log({ok: true, "more_detail": 'Client have the new image' ,message: 'Update imageUrl and other data successfully', result: category})
+          res.json({ok: true, "more_detail": 'Client have the new image' ,message: 'Update imageUrl and other data successfully', result: category})
         }
         else{
           try{
@@ -271,7 +274,6 @@ router.post('/insertWithoutImage', async ( req, res, next) => {
     }
     })
 })
-
 //
 
  //Update One with _Id WITHOUT image
@@ -279,10 +281,43 @@ router.post('/insertWithoutImage', async ( req, res, next) => {
   router.patch('/updateByIdWithoutImage/:id',async(req, res, next) => {
   try{ 
     const {id} = req.params;
-    const updateData = req.body;
+    const updateData = {...req.body};
+    const currentImageUrl = req.body.imageUrl
     const opts= {runValidators: true}
+    //Because client don't want use image, means, field imageUrl = null, so that:
+    updateData.imageUrl= null
+    //Update in Mongodb
     const category = await Category.findByIdAndUpdate(id, updateData, opts);
-    res.json({ok: true, result: category})
+    //If currentImageUrl= null, means that the user haven't have image before, then: do nothing
+    if((currentImageUrl === null)|currentImageUrl === 'null'){
+      console.log({ok: true, message: "The user doesn't have an image before now" , result: category})
+      res.json({ok: true, result: category})
+    }else{
+      // remove the old uploaded file from DiskStorage
+      try{
+        const currentDirectoryPath = './public' + currentImageUrl;
+        if(fs.existsSync(currentDirectoryPath)) {
+          //If existing, removing the former uploaded image from DiskStorage  
+          try{
+            //delete file image Synchronously
+            fs.unlinkSync(currentDirectoryPath);
+            console.log({message: 'File Image is delete from DiskStorage, update processing succeeded '})
+            res.json({ok: true, message: 'Update imageUrl and other data successfully', result: category})
+          }
+          catch(err){
+            console.error({ok: false, message: "Could not delete the old uploaded file. ", "detailed_error": err})
+            res.json({ok: true,warning: 'The old uploaded file cannot delete', message: 'Update (imageUrl="null") and other data successfully', result: category})
+          }
+        }
+        else{
+          res.json({ok: true,warning: 'Not existing the old uploaded image in DiskStorage', message: 'Update (imageUrl="null") and other data successfully', result: category})
+
+        }
+      } 
+      catch( err) {
+      console.error({ok:false, message: "Check the former uploaded image existing unsuccessfully ", err: err})
+      }
+    }
   }catch(err) {
     const messageError = formatterErrorFunc(err, COLLECTION_NAME)
     res.status(400).json({error: messageError})
