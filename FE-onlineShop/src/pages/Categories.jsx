@@ -94,8 +94,8 @@ function Categories() {
             <Upload
                showUploadList = {false}
                name='file'
-              //  data= {{message: 'Testing upload file '}}
-               action = {'http://localhost:9000/categoriesOnlineShopMongoose/uploadFile/' + record._id}
+               data= {{imageUrl: record.imageUrl? record.imageUrl : null }}
+               action = {'http://localhost:9000/categoriesOnlineShopMongoose/updateOnlyImage/' + record._id}
                headers= {{authorization: 'authorization-text'}}
                onChange= {(info) =>{
                    if(info.file.status !== 'uploading'){
