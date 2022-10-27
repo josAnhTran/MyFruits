@@ -8,7 +8,7 @@ const { MongoClient, ObjectId } = require('mongodb');
 const DATABASE_NAME = 'online-shop'
 const CONNECTION_STRING= "mongodb://127.0.0.1:27017/" + DATABASE_NAME
 
-// FIND following id
+//Get imageUrl from collection with id
 function findOne(id, collectionName, aggregate=[]){
     return new Promise((resolve, reject) => {
         MongoClient.connect(CONNECTION_STRING, {useNewUrlParser:true , useUnifiedTopology: true})
@@ -118,6 +118,31 @@ function insertDocuments(list, collectionName) {
 //
 
 //UPDATE ONE WITH ID
+function removeFieldById(id, data, collectionName){
+    return new Promise( (resolve, reject) => {
+        MongoClient.connect(CONNECTION_STRING, {useNewUrlParser: true, useUnifiedTopology: true})
+        .then((client) =>{
+            const dbo = client.db(DATABASE_NAME);
+            const collection = dbo.collection(collectionName);
+
+            collection.
+                findOneAndUpdate({_id: id}, {$unset: data})
+                .then(result => {
+                    client.close();
+                    resolve(result);
+                })
+                .catch(err =>{
+                    client.close();
+                    reject(err);
+                })
+        })
+        .catch(err => reject(err))
+    })
+}
+//
+
+
+//UPDATE ONE WITH ID
 function updateDocument(id, data, collectionName){
     return new Promise( (resolve, reject) => {
         MongoClient.connect(CONNECTION_STRING, {useNewUrlParser: true, useUnifiedTopology: true})
@@ -216,4 +241,5 @@ module.exports = {
     updateDocument, updateDocuments,
     findOne,findDocuments,
     deleteMany, deleteOneWithId,
+    removeFieldById
             }

@@ -23,6 +23,7 @@ function Categories() {
   const [refresh, setRefresh] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedId, setSelectedId] = useState(null)
+  const [currentImageUrl, setCurrentImageUrl] = useState(null)
 
   const [createForm] = Form.useForm()
   const [updateForm] = Form.useForm()
@@ -44,11 +45,12 @@ function Categories() {
           width: '80px',
           height: '80px'
         }
-        if(!text) {
-          text='/images/noImage.jpg'
-        }
         return <div style={style}>
-        <img src={`${WEB_SERVER_URL}${text}`} style={{width: '100%', height: '100%'}} alt=''></img>
+        <img 
+         src={  text? `${WEB_SERVER_URL}${text}` : './images/noImage.jpg'}
+         style={{width: '100%', height: '100%'}}
+         alt=''
+          ></img>
         </div>
       }
     },
@@ -133,6 +135,7 @@ function Categories() {
 
               setIsModalOpen(true)
               setSelectedId(record._id)
+              setCurrentImageUrl(record.imageUrl ? record.imageUrl: null)
 
               updateForm.setFieldsValue({
                 'name': record.name,
@@ -295,7 +298,7 @@ function Categories() {
    const handleFinishUpdate = (values) => {
     //SUBMIT
   let formData = null;
-  let newData = {...values, imageUrl:null}
+  let newData = {...values, imageUrl: currentImageUrl}
   console.log({data: newData})
   let URL =  URLCategory + '/updateByIdWithoutImage/' + selectedId
  //If containing an image <=> file !== null
@@ -305,6 +308,7 @@ function Categories() {
   formData.append('file', file);
   formData.append('name', values.name);
   formData.append('description', values.description);
+  formData.append('imageUrl', currentImageUrl)
   newData = formData;
   }
   //POST
