@@ -1,5 +1,4 @@
 'use strict';
-const { values } = require('lodash');
 // Declaration a library MongoClient
 // writing follwing desctructuring <=> const MongoClient = require('mongodb).MongoClient
 // ObjectID involving in working with autonumber

@@ -14,9 +14,6 @@ const supplierSchema = new Schema(
             type: String,
             trim: true,
             lowercase : true,
-            index: {
-                unique:[true, 'Email này đã tồn tại']
-            },
             maxLength:[ 50, 'Email không vượt quá 50 kí tự'],
             required: [true, 'Email không được để trống']
         },
@@ -34,7 +31,7 @@ const supplierSchema = new Schema(
         imageUrl: {
             type: String,
             trim: true,
-        }
+        },
     },
     // {
     //     //QUERY

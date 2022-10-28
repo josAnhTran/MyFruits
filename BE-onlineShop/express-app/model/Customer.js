@@ -31,9 +31,6 @@ const customerSchema = new Schema(
             type: String,
             trim: true,
             lowercase : true,
-            index: {
-                unique:true
-            },
             maxLength: 50,
             required: true
         },

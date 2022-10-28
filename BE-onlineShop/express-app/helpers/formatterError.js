@@ -2,17 +2,34 @@
 ///Formatter Error Message
 const formatterErrorFunc = (err, collection) =>{
     let errors = {}
-    const errMessage = err.message;
+    //Handling error code 11000- uniqueness error
+    if(err.code === 11000){
+      const errName = Object.keys(err.keyValue)[0];
+      switch(errName){
+        case "name" :
+          errors.name = 'Tên danh mục';
+          errors.message = "Tên danh mục đã tồn tại.";
+          break;
+        case "email" :
+          errors.name = 'Email';
+          errors.message = "Email đã tồn tại.";
+          break;
+      }
+      return errors;
+    }
+
+
+    const errMsg = err.message;
     const errName = err.name;
     //Phân loại kiểu lỗi validation để xử lý
     if(errName !== 'ValidationError') {
         errors.name = errName;
-        errors.message = errMessage
+        errors.message = errMsg
         return errors
     }
     //
 
-    const error01 = errMessage.substring(errMessage.indexOf(':') +1).trim()
+    const error01 = errMsg.substring(errMsg.indexOf(':') +1).trim()
     // const errorSpilt = error01.split(':');
     let [name, message] =error01.split(':').map((e) => e.trim())
 
