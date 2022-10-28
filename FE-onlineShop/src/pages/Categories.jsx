@@ -129,7 +129,7 @@ function Categories() {
 
               const savedUrl = [{
                 uid: '-1',
-                name: 'IMG_0693.JPG',
+                // name: 'IMG_0693.JPG',
                 status: 'done',
                 url:`${WEB_SERVER_URL}${record.imageUrl}`,
                 thumbUrl: `${WEB_SERVER_URL}${record.imageUrl}`
