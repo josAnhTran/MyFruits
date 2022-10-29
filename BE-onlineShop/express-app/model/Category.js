@@ -8,12 +8,13 @@ const categorySchema = new Schema(
             type: String,
             trim: true,
             maxLength: [50, 'Tên danh mục không quá 50 kí tự!'],
+            lowercase: true,
             required: [true, 'Tên danh mục không được để trống']
         },
         description: {
             type: String,
             trim: true,
-            maxLength: [50, 'Phần mô tả danh mục không quá 500 kí tự!'],
+            maxLength: [500, 'Phần mô tả danh mục không quá 500 kí tự!'],
         },
         imageUrl: {
             type: String,

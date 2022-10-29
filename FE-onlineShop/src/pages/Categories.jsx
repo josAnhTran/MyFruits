@@ -44,6 +44,27 @@ function Categories() {
   const columns = [
     {
       title: () => {
+        return (
+          <div style={{ paddingLeft: 8, fontWeight: 600, textTransform: 'capitalize'}}>Tên Danh Mục</div>
+        );
+      },
+      key: "name",
+      dataIndex: "name",
+      width: "10%",
+      fixed: 'left',
+      // defaultSortOrder: 'ascend',
+      sorter: (a, b) => a.name.length - b.name.length,
+      render: (text) => {
+        const style = {
+          fontWeight: 600,
+          paddingLeft: 8,
+          textTransform: "capitalize" 
+        };
+        return <div style={style}>{text}</div>;
+      },
+    },
+    {
+      title: () => {
         return <div style={{ paddingLeft: 8, fontWeight: 600 }}>Hình ảnh</div>;
       },
       key: "imageUrl",
@@ -67,26 +88,7 @@ function Categories() {
         );
       },
     },
-    {
-      title: () => {
-        return (
-          <div style={{ paddingLeft: 8, fontWeight: 600 }}>Tên Danh Mục</div>
-        );
-      },
-      key: "name",
-      dataIndex: "name",
-      width: "15%",
-      // fixed: 'left',
-      // defaultSortOrder: 'ascend',
-      sorter: (a, b) => a.name.length - b.name.length,
-      render: (text) => {
-        const style = {
-          fontWeight: 600,
-          paddingLeft: 8,
-        };
-        return <div style={style}>{text}</div>;
-      },
-    },
+   
 
     {
       title: "Mô tả",
@@ -250,8 +252,11 @@ function Categories() {
         max: 50,
         message: "Tên danh mục không quá 50 kí tự!",
       },
+      {
+        whitespace: true,
+        message: "Tên danh mục không thể là khoảng trống"
+      }
     ],
-    hasFeedback: true,
   };
 
   const PropsFormItemDescription = {
@@ -326,11 +331,7 @@ function Categories() {
         }
       })
       .catch((error) => {
-        const errorText = {
-          name: error.response.data.error.name,
-          message: error.response.data.error.message,
-        };
-        message.error(errorText.message)
+        message.error(error.response.data.errMsgMongoDB.message)
         // notification.info({
         //   message: errorText.name,
         //   description: errorText.message,
@@ -384,14 +385,7 @@ function Categories() {
         }
       })
       .catch((error) => {
-        const errorText = {
-          name: error.response.data.error.name,
-          message: error.response.data.error.message,
-        };
-        notification.info({
-          message: errorText.name,
-          description: errorText.message,
-        });
+        message.error(error.response.data.errMsgMongoDB.message)
       })
       .finally(() => {
         setUploading(false);
@@ -420,7 +414,7 @@ function Categories() {
             });
           }}
         >
-          <Form.Item {...PropsFormItemName}>
+          <Form.Item {...PropsFormItemName} >
             <Input placeholder="Tên danh mục mới" />
           </Form.Item>
 
@@ -487,7 +481,7 @@ function Categories() {
               });
             }}
           >
-            <Form.Item {...PropsFormItemName}>
+            <Form.Item {...PropsFormItemName} >
               <Input placeholder="Tên danh mục " />
             </Form.Item>
 

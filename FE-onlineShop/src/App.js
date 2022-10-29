@@ -9,7 +9,6 @@ import Suppliers from './pages/Suppliers';
 import Customers from './pages/Customers';
 import Employees from './pages/Employees';
 import Products from './pages/Products';
-import ManualAntUpload from './pages/demo';
 
 
 function App() {
@@ -56,7 +55,7 @@ function App() {
           <Route path='/suppliers' element={<Suppliers/>}/>
           <Route path='/products' element={<Products/>}/>
           <Route path='/customers' element={<Customers/>}/>
-          <Route path='/employees' element={<ManualAntUpload/>}/>
+          <Route path='/employees' element={<Employees/>}/>
           {/* <Route path='/employees' element={<Employees/>}/> */}
 
           {/* NO MATCHING ROUTE */}

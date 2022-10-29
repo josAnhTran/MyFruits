@@ -1,13 +1,23 @@
 "use strict";
 var express = require("express");
-
+var router = express.Router();
 const { default: mongoose } = require("mongoose");
 const Category = require("../../model/Category");
-var router = express.Router();
 
 const multer = require("multer");
 const fs = require("fs");
 
+
+const {
+  URL_APP_SERVER,
+  PATH_FOLDER_PUBLIC,
+  PATH_FOLDER_IMAGES,
+  FOLDER_INITIATION,
+} = require("../../functions/constants");
+
+const COLLECTION_NAME = "categories";
+mongoose.connect(URL_APP_SERVER);
+const { formatterErrorFunc } = require("../../helpers/formatterError");
 // const upload = require('multer')();
 //  router.patch('/updateByIdWithoutImage/:id',upload.any() ,async(req, res, next) => {
 
@@ -31,19 +41,8 @@ const {
   search_deleteWithId,
   search_deleteManyCategoriesSchema,
 } = require("../../helpers/schemas/schemasCategoriesOnlineShop.yup");
-const { formatterErrorFunc } = require("../../helpers/formatterError");
 // const { removeFile, removeSyncFile } = require('../../controller/controller');
-const {
-  URL_APP_SERVER,
-  PATH_FOLDER_PUBLIC,
-  PATH_FOLDER_IMAGES,
-  FOLDER_INITIATION,
-} = require("../../functions/constants");
 
-const COLLECTION_NAME = "categories";
-
-mongoose.connect(URL_APP_SERVER);
-// const { json } = require('express');
 //
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -65,13 +64,13 @@ const storage = multer.diskStorage({
   },
 });
 
-const uploadImage = multer({ storage: storage }).single("file");
+const uploadImg = multer({ storage: storage }).single("file");
 
 // Just update field: image file
 router.post("/updateOnlyImage/:id", function (req, res, next) {
-  uploadImage(req, res, async function (err) {
+  uploadImg(req, res, async function (err) {
     const categoryId = req.params.id;
-    let imageUrl = null;
+    let newImgUrl = null;
     try {
       if (err instanceof multer.MulterError) {
         res.status(500).json({ type: "MulterError", err: err });
@@ -79,140 +78,107 @@ router.post("/updateOnlyImage/:id", function (req, res, next) {
         res.status(500).json({ type: "UnknownError", err: err });
       } else {
         // console.log({ok: true, message: 'Add the new updating image in to DiskStorage successfully'})
-        const currentImageUrl = req.body.imageUrl;
-        // const currentDirectoryPath = './public' + currentImageUrl;
-        const currentDirectoryPath = PATH_FOLDER_PUBLIC + currentImageUrl;
+        const currentImgUrl = req.body.imageUrl;
+        // const currentDirPath = './public' + currentImgUrl;
+        const currentDirPath = PATH_FOLDER_PUBLIC + currentImgUrl;
         const opts = { runValidators: true };
         // imageUrl = `/images/categories/${categoryId}/${req.file.filename}`;
-        imageUrl = `${PATH_FOLDER_IMAGES}/${COLLECTION_NAME}/${categoryId}/${req.file.filename}`;
+        newImgUrl = `${PATH_FOLDER_IMAGES}/${COLLECTION_NAME}/${categoryId}/${req.file.filename}`;
         //Update in Mongodb
-        const category = await Category.findByIdAndUpdate(
+        const UpdatedDoc = await Category.findByIdAndUpdate(
           categoryId,
-          { imageUrl: imageUrl },
+          { imageUrl: newImgUrl },
           opts
         );
-        // console.log({ok: true, message: 'Successful when update image for the category in Mongodb'})
-        if (currentImageUrl === "null") {
-          // console.log({ok: true, "more_detail": 'Client have the new image' ,message: 'Update imageUrl and other data successfully', result: category})
+        // console.log({ok: true, message: 'Successful when update image for the collection with categoryId in Mongodb'})
+        if (currentImgUrl === "null") {
+          // console.log({ok: true, "more_detail": 'Client have the new image' ,message: 'Update imageUrl and other data successfully', result: UpdatedDoc})
           res.json({
-            ok: true,
+            okMongoDB: true,
             more_detail: "Client have the new image",
             message: "Update imageUrl and other data successfully",
-            result: category,
+            result: UpdatedDoc,
           });
         } else {
           try {
-            if (fs.existsSync(currentDirectoryPath)) {
+            if (fs.existsSync(currentDirPath)) {
               //If existing, removing the former uploaded image from DiskStorage
               try {
                 //delete file image Synchronously
-                fs.unlinkSync(currentDirectoryPath);
-                console.log({
-                  message:
-                    "File Image is delete from DiskStorage, update processing succeeded ",
-                });
+                fs.unlinkSync(currentDirPath);
                 res.json({
-                  ok: true,
+                  okMongoDB: true,
                   message: "Update imageUrl and other data successfully",
-                  result: category,
+                  UpdatedDoc,
                 });
-              } catch (err) {
-                console.error({
-                  ok: false,
-                  message: "Could not delete the old uploaded file. ",
-                  detailed_error: err,
-                });
+              } catch (errRmvFile) {
                 res.json({
-                  ok: true,
+                  okMongoDB: true,
                   warning: "The old uploaded file cannot delete",
                   message: "Update imageUrl and other data successfully",
-                  result: category,
+                  result: UpdatedDoc,
                 });
               }
             } else {
               res.json({
-                ok: true,
+                okMongoDB: true,
                 warning: "Not existing the old uploaded image in DiskStorage",
                 message: "Update imageUrl and other data successfully",
-                result: category,
+                result: UpdatedDoc,
               });
             }
-          } catch (err) {
-            console.error({
-              ok: false,
-              message:
-                "Check the former uploaded image existing unsuccessfully ",
-              err: err,
-            });
+          } catch (errCheckFile) {
             res.json({
-              ok: false,
+              okMongo: true,
               warning:
                 "Check the former uploaded image existing unsuccessfully, can not delete it",
               message:
                 "Check the former uploaded image existing unsuccessfully ",
-              err: err,
+              errCheckFile,
             });
           }
         }
       }
-    } catch (err) {
-      // Error when updating new data to Mongodb, let check the exists of the new image in DiskStorage and remove it before res.status(400)...
+    } catch (errMongoDB) {
+      // Error when updating the UpdatedDoc in Mongodb, let check the exists of the new image in DiskStorage and remove it before res.status(400)...
       try {
-        // const newDirectoryPath = './public/' + imageUrl;
-        const newDirectoryPath = PATH_FOLDER_PUBLIC + imageUrl;
-        if (fs.existsSync(newDirectoryPath)) {
+        // const newDirPath = './public/' + imageUrl;
+        const newDirPath = PATH_FOLDER_PUBLIC + imageUrl;
+        if (fs.existsSync(newDirPath)) {
           try {
-            fs.unlinkSync(newDirectoryPath);
-            console.log({
-              ok: true,
+            fs.unlinkSync(newDirPath);
+            res.status(400).json({
+              okMongoDB: false,
               message:
-                "The new file Image is delete from DiskStorage, when something wrong at updating new image in Mongodb ",
+                "add file into DiskStorage, but for error when updating the UpdatedDoc in Mongodb, so that remove successfully this file from DiskStorage",
+              errMongoDB,
             });
-            res
-              .status(400)
-              .json({
-                ok: false,
-                message:
-                  "add file into DiskStorage, but for error when update imageUrl in Mongodb, so that remove successfully this file from DiskStorage",
-                error: err,
-              });
-          } catch (errRemove) {
-            res
-              .status(500)
-              .json({
-                ok: false,
-                warning:
-                  "the new image added into DiskStorage, but can not update successfully the new link of new image, also can not delete the new file from DiskStorage",
-                message: "Could not delete the  new file in DiskStorage. ",
-                detailed_errRemove: errRemove,
-                detailed_errUpdateMongodb: err,
-              });
+          } catch (errRmvFile) {
+            res.status(500).json({
+              okMongoDB: false,
+              warning:
+                "the new image added into DiskStorage, but can not update successfully the UpdatedDoc in MongoDB, also can not delete the new file from DiskStorage",
+              message: "Could not delete the new file in DiskStorage. ",
+              errRmvFile,
+              errMongoDB,
+            });
           }
         } else {
           // do nothing if the new image not exists in DiskStorage
-          res
-            .status(400)
-            .json({
-              ok: false,
-              message:
-                " error when update imageUrl in Mongodb, also, we cannot find this new file in DiskStorage",
-              error: err,
-            });
-        }
-      } catch (errCheckExisting) {
-        console.error({
-          ok: false,
-          message: "Check the new uploaded image existing unsuccessfully ",
-          detailed_error: errCheckExisting,
-        });
-        res
-          .status(400)
-          .json({
-            ok: false,
+          res.status(400).json({
+            okMongoDB: false,
             message:
-              " error when update imageUrl in Mongodb. Be careful, Check the new uploaded image existing unsuccessfully",
-            error: err,
+              " error when update imageUrl in Mongodb, also, we cannot find this new file in DiskStorage",
+            errMongoDB,
           });
+        }
+      } catch (errCheckFile) {
+        res.status(400).json({
+          okMongoDB: false,
+          message:
+            " error when update imageUrl in Mongodb. Be careful, Check the new uploaded image existing unsuccessfully to delete it",
+          errMongoDB,
+        });
       }
     }
   });
@@ -221,9 +187,9 @@ router.post("/updateOnlyImage/:id", function (req, res, next) {
 
 // Insert One WITH an Image
 router.post("/insertWithImage", (req, res, next) => {
-  uploadImage(req, res, async function (err) {
+  uploadImg(req, res, async function (err) {
     try {
-      // await uploadImage(req, res, function(err) {
+      // await uploadImg(req, res, function(err) {
       if (err instanceof multer.MulterError) {
         res.status(500).json({ type: "MulterError", err: err });
       } else if (err) {
@@ -234,14 +200,55 @@ router.post("/insertWithImage", (req, res, next) => {
         const newData = { ...req.body, imageUrl };
 
         //Create a new blog post object
-        const category = new Category(newData);
-        //Insert the new category in our Mongodb database
-        await category.save();
-        res.status(201).json({ ok: true, result: category });
+        const newDoc = new Category(newData);
+        //Insert the new Document in our Mongodb database
+        await newDoc.save();
+        res.status(201).json({ okMongoDB: true, result: newDoc });
       }
-    } catch (err) {
-      const errMsg = formatterErrorFunc(err, COLLECTION_NAME);
-      res.status(400).json({ error: errMsg });
+    } catch (errMongoDB) {
+      // Error when adding new data to Mongodb, let check the exists of the new image in DiskStorage and remove it before res.status(400)...
+      const errMsgMongoDB = formatterErrorFunc(errMongoDB, COLLECTION_NAME);
+      try {
+        // const newDirPath = './public/' + imageUrl;
+        const newDirPath = PATH_FOLDER_PUBLIC + imageUrl;
+        if (fs.existsSync(newDirPath)) {
+          try {
+            fs.unlinkSync(newDirPath);
+            res.status(400).json({
+              okMongoDB: false,
+              message:
+                "add file into DiskStorage, but for error when adding newDocument in Mongodb, so that removing successfully this file from DiskStorage",
+              errMsgMongoDB,
+            });
+          } catch (errRmvFile) {
+            res.status(500).json({
+              okMongoDB: false,
+              warning:
+                "the new image added into DiskStorage, but can not add successfully the newDocument in MongoDB, also can not delete this new file from DiskStorage",
+              message:
+                "Add new Document error, can not delete the  new file in DiskStorage. ",
+              errRmvFile,
+              errMsgMongoDB,
+            });
+          }
+        } else {
+          // do nothing if the new image not exists in DiskStorage
+          res.status(400).json({
+            okMongoDB: false,
+            message:
+              " error when adding the newDocument in Mongodb, also, we cannot find this new file in DiskStorage",
+            errMsgMongoDB,
+          });
+        }
+      } catch (errCheckFile) {
+        res.status(400).json({
+          okMongoDB: false,
+          message:
+            " error when adding the newDocument in Mongodb. Be careful, Check the new uploaded image existing unsuccessfully",
+          errCheckFile,
+          errMsgMongoDB,
+        });
+      }
     }
   });
 });
@@ -252,13 +259,13 @@ router.post("/insertWithoutImage", async (req, res, next) => {
   try {
     const data = req.body;
     //Create a new blog post object
-    const category = new Category(data);
-    //Insert the new category in our Mongodb database
-    await category.save();
-    res.status(201).json({ ok: true, result: category });
-  } catch (err) {
-    const errMsg = formatterErrorFunc(err, COLLECTION_NAME);
-    res.status(400).json({ error: errMsg });
+    const newDoc = new Category(data);
+    //Insert the newDocument in our Mongodb database
+    await newDoc.save();
+    res.status(201).json({ ok: true, result: newDoc });
+  } catch (errMongoDB) {
+    const errMsgMongoDB = formatterErrorFunc(errMongoDB, COLLECTION_NAME);
+    res.status(400).json({ errMsgMongoDB });
   }
 });
 //
@@ -273,13 +280,13 @@ router.post("/insertWithoutImage", async (req, res, next) => {
 //--Cập nhật dữ liệu vào Mongodb thất bại thì kiểm tra sự tồn tại của file ảnh mới trong DiskStorage và xóa ảnh trước khi res.status(400)...
 router.patch("/updateByIdWithImage/:id", (req, res, next) => {
   //--Add the new updating image in to DiskStorage
-  uploadImage(req, res, async function (err) {
+  uploadImg(req, res, async function (err) {
     //--Get the link of the former uploaded image, so that,
     //--we can use this link to remove the old uploaded file from DiskStorage after success to update new data in Mongodb
-    const currentImageUrl = req.body.imageUrl;
-    const currentDirectoryPath = PATH_FOLDER_PUBLIC + currentImageUrl;
+    const currentImgUrl = req.body.imageUrl;
+    const currentDirPath = PATH_FOLDER_PUBLIC + currentImgUrl;
     const categoryId = req.params.id;
-    const NewImageUrl = `${PATH_FOLDER_IMAGES}/${COLLECTION_NAME}/${categoryId}/${req.file.filename}`;
+    const newImgUrl = `${PATH_FOLDER_IMAGES}/${COLLECTION_NAME}/${categoryId}/${req.file.filename}`;
     try {
       if (err instanceof multer.MulterError) {
         res.status(500).json({ type: "MulterError", err: err });
@@ -291,110 +298,107 @@ router.patch("/updateByIdWithImage/:id", (req, res, next) => {
 
         const newData = { ...req.body };
         //--change field imageUrl
-        newData.imageUrl = NewImageUrl;
+        newData.imageUrl = newImgUrl;
         const opts = { runValidators: true };
-        const category = await Category.findByIdAndUpdate(
+        const UpdatedDoc = await Category.findByIdAndUpdate(
           categoryId,
           newData,
           opts
         );
         //--If update new data(containing the link of the new Image) in Mongodb successfully, then...
-        // console.log({ok: true, message: 'Update imageUrl and other data in Mongodb successfully ', result: category})
-        if (currentImageUrl === null || currentImageUrl === "null") {
-          // console.log({ok: true, "more_detail": 'Client have the new image' ,message: 'Update imageUrl and other data successfully', result: category})
+        // console.log({ok: true, message: 'Update imageUrl and other data in Mongodb successfully ', result: UpdatedDoc})
+        if (currentImgUrl === null || currentImgUrl === "null") {
+          // console.log({ok: true, "more_detail": 'Client have the new image' ,message: 'Update imageUrl and other data successfully', result: UpdatedDoc})
           res.json({
             ok: true,
             more_detail: "Client have the new image",
             message: "Update imageUrl and other data successfully",
-            result: category,
+            result: UpdatedDoc,
           });
         } else {
           try {
-            if (fs.existsSync(currentDirectoryPath)) {
+            if (fs.existsSync(currentDirPath)) {
               //--If existing, removing the former uploaded image from DiskStorage
               try {
                 //--delete file image Synchronously
-                fs.unlinkSync(currentDirectoryPath);
-                // console.log({message: 'File Image is delete from DiskStorage, update processing succeeded '})
+                fs.unlinkSync(currentDirPath);
                 res.json({
-                  ok: true,
+                  okMongoDB: true,
                   message: "Update imageUrl and other data successfully",
-                  result: category,
+                  result: UpdatedDoc,
                 });
-              } catch (err) {
-                // console.error({ok: false, message: "Could not delete the old uploaded file. ", "detailed_error": err})
+              } catch (errRmvFile) {
                 res.json({
-                  ok: true,
+                  okMongoDB: true,
                   warning: "The old uploaded file cannot delete",
                   message: "Update imageUrl and other data successfully",
-                  result: category,
+                  errRmvFile,
+                  result: UpdatedDoc,
                 });
               }
             } else {
               res.json({
-                ok: true,
+                okMongoDB: true,
                 warning: "Not existing the old uploaded image in DiskStorage",
                 message: "Update imageUrl and other data successfully",
-                result: category,
+                result: UpdatedDoc,
               });
             }
-          } catch (err) {
-            console.error({
-              ok: false,
-              message:
-                "Check the former uploaded image existing unsuccessfully ",
-              err: err,
-            });
+          } catch (errCheckFile) {
             res.json({
-              ok: true,
+              okMongoDB: true,
               warning:
                 "Check existing of the former uploaded image for deleting unsuccessfully",
               message: "Update imageUrl and other data successfully",
-              result: category,
+              result: UpdatedDoc,
             });
           }
         }
       }
-    } catch (err) {
+    } catch (errMongoDB) {
       // Error when updating new data to Mongodb, let check the exists of the new image in DiskStorage and remove it before res.status(400)...
+      const errMsgMongoDB = formatterErrorFunc(errMongoDB, COLLECTION_NAME);
+
       try {
-        const newDirectoryPath = PATH_FOLDER_PUBLIC + NewImageUrl;
-        if (fs.existsSync(newDirectoryPath)) {
+        const newDirPath = PATH_FOLDER_PUBLIC + newImgUrl;
+        if (fs.existsSync(newDirPath)) {
           try {
-            fs.unlinkSync(newDirectoryPath);
-            // console.log({ok: true, message: 'The new file Image is delete from DiskStorage, when something wrong at updating new data in Mongodb '})
-          } catch (errRemove) {
-            res
-              .status(500)
-              .json({
-                ok: false,
-                warning:
-                  "the new image added into DiskStorage, but can not update successfully the new data( containing the link of new image), also can not delete the new file from DiskStorage",
-                message: "Could not delete the  new file in DiskStorage. ",
-                detailed_errRemove: errRemove,
-                detailed_errUpdateMongodb: err,
-              });
+            fs.unlinkSync(newDirPath);
+            res.status(400).json({
+              okMongoDB: false,
+              message:
+                "the new image added into DiskStorage, after that, this file Image is deleted from DiskStorage, when something wrong at updating the UpdatedDoc in Mongodb ",
+              errMsgMongoDB,
+            });
+          } catch (errRmvFile) {
+            res.status(500).json({
+              okMongoDB: false,
+              warning:
+                "the new image added into DiskStorage, but can not update successfully the the UpdatedDoc( containing the link of new image), also can not delete the new file from DiskStorage",
+              message:
+                "error when updating the updateDocument in Mongodb, also,can not delete the new file in DiskStorage. ",
+              errRmvFile,
+              errMongoDB,
+            });
           }
         } else {
-          //-- do nothing if the new image not exists in DiskStorage
-        }
-      } catch (errCheckExisting) {
-        console.error({
-          ok: false,
-          message: "Check the new uploaded image existing unsuccessfully ",
-          detailed_error: errCheckExisting,
-        });
-        res
-          .status(400)
-          .json({
-            ok: false,
-            warning: "Check the new uploaded image existing unsuccessfully",
-            error: errCheckExisting,
+          // do nothing if the new image not exists in DiskStorage
+          res.status(400).json({
+            okMongoDB: false,
+            message:
+              " error when updating the updateDocument in Mongodb, also, we cannot find this new file in DiskStorage",
+            errMongoDB,
           });
+        }
+      } catch (errCheckFile) {
+        res.status(400).json({
+          okMongoDB: false,
+          message:
+            "error when updating the updateDocument in Mongodb, also, check the new uploaded image existing unsuccessfully to delete it",
+          errCheckFile,
+          errMsgMongoDB,
+        });
       }
-      // console.log({ok: false, message: 'Having errors when update new data(containing new imageUrl) in Mongodb', "detailed_error": err })
-      const errMsg = formatterErrorFunc(err, COLLECTION_NAME);
-      res.status(400).json({ ok: false, error: errMsg });
     }
   });
 });
@@ -405,73 +409,70 @@ router.patch("/updateByIdWithoutImage/:id", async (req, res, next) => {
   try {
     const { id } = req.params;
     const updateData = { ...req.body };
-    const currentImageUrl = req.body.imageUrl;
-    const { isChangedImageUrl } = req.body;
+    const currentImgUrl = req.body.imageUrl;
+    const { isChangeImg } = req.body;
     //Delete key isChangeImage from data before update in MongoDB
-    delete updateData.isChangedImageUrl;
+    delete updateData.isChangeImg;
     const opts = { runValidators: true };
     //--Because client don't want use image, means, field imageUrl = null
     //But, if the client not change image Upload, then keeping the old imageUrl
-    if (isChangedImageUrl) updateData.imageUrl = null;
+    if (isChangeImg) updateData.imageUrl = null;
     //--Update in Mongodb
-    const category = await Category.findByIdAndUpdate(id, updateData, opts);
-    //--If currentImageUrl= null, means that the user haven't have image before, then: do nothing
-    if (
-      currentImageUrl === null ||
-      currentImageUrl === "null" ||
-      !isChangedImageUrl
-    ) {
-      // console.log({ok: true, message: "The client doesn't have an image before now" , result: category})
-      res.json({ ok: true, result: category });
+    const UpdatedDoc = await Category.findByIdAndUpdate(id, updateData, opts);
+    //--If currentImgUrl= null, means that the user haven't have image before, then: do nothing
+    if (currentImgUrl === null || currentImgUrl === "null" || !isChangeImg) {
+      res.json({
+        okMongoDB: true,
+        message: "The client doesn't have an image before now",
+        result: UpdatedDoc,
+      });
     } else {
       //-- remove the old uploaded file from DiskStorage
       try {
-        const currentDirectoryPath = PATH_FOLDER_PUBLIC + currentImageUrl;
-        if (fs.existsSync(currentDirectoryPath)) {
+        const currentDirPath = PATH_FOLDER_PUBLIC + currentImgUrl;
+        if (fs.existsSync(currentDirPath)) {
           //--If existing, removing the former uploaded image from DiskStorage
           try {
             //--delete file image Synchronously
-            fs.unlinkSync(currentDirectoryPath);
-            // console.log({message: 'File Image is delete from DiskStorage, update processing succeeded '})
+            fs.unlinkSync(currentDirPath);
+            // console.log( {message: 'File Image is delete from DiskStorage, update processing succeeded '})
             res.json({
-              ok: true,
-              message: "Update imageUrl and other data successfully",
-              result: category,
+              okMongoDB: true,
+              message:
+                "The old uploaded image is delete from DiskStorage, Update imageUrl and other data successfully",
+              result: UpdatedDoc,
             });
-          } catch (err) {
+          } catch (errRmvFile) {
             // console.error({ok: false, message: "Could not delete the old uploaded file. ", "detailed_error": err})
             res.json({
-              ok: true,
+              okMongoDB: true,
               warning: "The old uploaded file cannot delete",
               message: 'Update (imageUrl="null") and other data successfully',
-              result: category,
+              errRmvFile,
+              result: UpdatedDoc,
             });
           }
         } else {
           res.json({
-            ok: true,
+            okMongoDB: true,
             warning: "Not existing the old uploaded image in DiskStorage",
             message: "Update (imageUrl= null) and other data successfully",
-            result: category,
+            result: UpdatedDoc,
           });
         }
       } catch (errFileExisting) {
-        console.error({
-          ok: false,
-          message: "Check the former uploaded image existing unsuccessfully ",
-          err: err,
-        });
         res.json({
           ok: true,
           warning: "Check the former uploaded image existing unsuccessfully",
           message: "Update (imageUrl= null) and other data successfully",
-          errFileExisting: errFileExisting,
+          errFileExisting,
+          result: UpdatedDoc,
         });
       }
     }
-  } catch (err) {
-    const errMsg = formatterErrorFunc(err, COLLECTION_NAME);
-    res.status(400).json({ error: errMsg });
+  } catch (errMongoDB) {
+    const errMsgMongoDB = formatterErrorFunc(errMongoDB, COLLECTION_NAME);
+    res.status(400).json({ errMsgMongoDB: errMsgMongoDB });
   }
 });
 //
@@ -480,11 +481,7 @@ router.patch("/updateByIdWithoutImage/:id", async (req, res, next) => {
 router.delete("/delete-id/:id", async (req, res, next) => {
   try {
     const { id } = req.params;
-    const deleteCategory = await Category.findByIdAndDelete(id);
-    console.log({
-      ok: true,
-      message: "delete all data of the ID from MongoDB successfully",
-    });
+    const deleteDoc = await Category.findByIdAndDelete(id);
     //--Delete the folder containing image of the account
     try {
       const pathFolderImages =
@@ -498,16 +495,14 @@ router.delete("/delete-id/:id", async (req, res, next) => {
         //--If existing, removing this folder from DiskStorage
         try {
           fs.rmSync(pathFolderImages, { recursive: true, force: true });
-          // console.log({message: 'The Folder is deleted from DiskStorage, deleting processing succeeded '})
           res.json({
-            ok: true,
+            okMongoDB: true,
             message:
               "Delete the document in MongoDB and DiskStorage successfully",
           });
         } catch (err) {
-          // console.error({ok: false, message: "Could not delete the folder containing image of the document. ", "detailed_error": err})
           res.json({
-            ok: true,
+            okMongoDB: true,
             warning:
               "Could not delete the folder containing image of the document.",
             message: "Delete the document with ID successfully, in MongoDB",
@@ -516,29 +511,26 @@ router.delete("/delete-id/:id", async (req, res, next) => {
       } else {
         // console.log({ok: true, warning: 'Not existing the folder containing image for deleted document in DiskStorage', message: 'Delete the document with ID successfully, in MongoDB'})
         res.json({
-          ok: true,
+          okMongoDB: true,
           warning:
             "Not existing the folder containing image for deleted document in DiskStorage",
           message: "Delete the document with ID successfully, in MongoDB",
         });
       }
-    } catch (err) {
-      // console.error({ok:false, message: "Check the existence of the folder containing image of the document unsuccessfully ", err: err})
+    } catch (errCheckFile) {
       res.json({
         ok: false,
         warning:
           "Check the existence of the folder containing image of the document unsuccessfully, can not delete it",
         message: "Delete the document with ID successfully, in MongoDB",
-        err: err,
+        errCheckFile,
       });
     }
-  } catch (err) {
-    res
-      .status(400)
-      .json({
-        error: { name: err.name, message: err.message },
-        message: "Failed to delete the document with ID",
-      });
+  } catch (errMongoDB) {
+    res.status(400).json({
+      errMsgMongoDB: { name: errMongoDB.name, message: errMongoDB.message },
+      message: "Failed to delete the document with ID",
+    });
   }
 });
 //
@@ -549,7 +541,7 @@ router.get("/", async (req, res, next) => {
     const categories = await Category.find().sort({ _id: -1 });
     res.json({ ok: true, result: categories });
   } catch (err) {
-    res.status(400).json({ error: { name: err.name, message: err.message } });
+    res.status(400).json({ errMsgMongoDB: { name: err.name, message: err.message } });
   }
 });
 //
@@ -563,7 +555,7 @@ router.get("/", async (req, res, next) => {
 //     //the same:  const category = await Category.findOne({ _id: id });
 //     res.json({ ok: true, result: category });
 //   }catch(err) {
-//     res.status(400).json({ error: { name: err.name, message: err.message } })
+//     res.status(400).json({ errMsgMongoDB: { name: err.name, message: err.message } })
 //   }
 // })
 
@@ -623,7 +615,7 @@ router.get("/", async (req, res, next) => {
 //       res.status(500).json({ message: "Could not delete the file. " + err})
 //     }
 //   }catch(err) {
-//     res.status(400).json({ error: { name: err.name, message: err.message } })
+//     res.status(400).json({ errMsgMongoDB: { name: err.name, message: err.message } })
 //   }
 // })
 //
