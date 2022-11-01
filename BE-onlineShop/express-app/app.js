@@ -134,6 +134,7 @@ app.use('/productsMongo', productMongoRouter)
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
+  console.log('Not found the link-route')
   next(createError(404));
 });
 

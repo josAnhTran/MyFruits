@@ -19,6 +19,7 @@ const categorySchema = new Schema(
         imageUrl: {
             type: String,
             trim: true,
+            // required: [true, 'Đường dẫn hình ảnh phải là "Null" hoặc một đường dẫn nào đó ']
         }
     },
     // {

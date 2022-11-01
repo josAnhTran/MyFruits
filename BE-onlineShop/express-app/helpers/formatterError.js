@@ -18,16 +18,26 @@ const formatterErrorFunc = (err, collection) =>{
       return errors;
     }
 
-
     const errMsg = err.message;
     const errName = err.name;
+    const errKind = err.kind;
+
     //Phân loại kiểu lỗi validation để xử lý
+    // Error about formatter ObjectId
+    if((errKind === 'ObjectId')&&(errName === 'CastError')){
+      errors.name = 'Mã ID';
+      errors.message = 'Mã ID không đúng định dạng!'
+      return errors;
+    }
+
+    // Other kind of errors
     if(errName !== 'ValidationError') {
         errors.name = errName;
         errors.message = errMsg
         return errors
     }
     //
+    
 
     const error01 = errMsg.substring(errMsg.indexOf(':') +1).trim()
     // const errorSpilt = error01.split(':');
@@ -49,7 +59,7 @@ const formatterErrorFunc = (err, collection) =>{
     if(collection === 'suppliers'){
         switch (name) {
             case 'name' :
-              name= 'Tên nhà cung cấp';
+              name= 'Tên nhà phân phối';
               break;
             case 'email' :
               name= 'Email';

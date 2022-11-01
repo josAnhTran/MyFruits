@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import "./css/CommonStyle.css";
 
 import axios from "axios";
 
@@ -23,12 +24,17 @@ import {
 import TextArea from "antd/lib/input/TextArea";
 
 import { URLSupplier, WEB_SERVER_URL } from "../functions/constants";
-import LabelCustomization from "./components/subComponents";
+import LabelCustomization, {
+  BoldText,
+  ImgIcon,
+  TitleTable,
+} from "./components/subComponents";
 
 function Suppliers() {
   const [uploading, setUploading] = useState(false);
   const [file, setFile] = useState(null);
   const [categories, setCategories] = useState([]);
+  const [totalDocs, setTotalDocs] = useState(0);
   const [refresh, setRefresh] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
@@ -38,23 +44,10 @@ function Suppliers() {
 
   const [createForm] = Form.useForm();
   const [updateForm] = Form.useForm();
-
-  const urlIcon = "./imageIcons/icon03.png";
-
   const columns = [
     {
       title: () => {
-        return (
-          <div
-            style={{
-              paddingLeft: 8,
-              fontWeight: 600,
-              textTransform: "capitalize",
-            }}
-          >
-            Tên Nhà Phân Phối
-          </div>
-        );
+        return <BoldText title={"Nhà phân phối"} />;
       },
       key: "name",
       dataIndex: "name",
@@ -63,30 +56,19 @@ function Suppliers() {
       // defaultSortOrder: 'ascend',
       sorter: (a, b) => a.name.length - b.name.length,
       render: (text) => {
-        const style = {
-          fontWeight: 600,
-          paddingLeft: 8,
-          textTransform: "capitalize",
-        };
-        return <div style={style}>{text}</div>;
+        return <BoldText title={text} />;
       },
     },
     {
       title: () => {
-        return <div style={{ paddingLeft: 8, fontWeight: 600 }}>Hình ảnh</div>;
+        return <BoldText title={"Hình ảnh"} />;
       },
       key: "imageUrl",
       dataIndex: "imageUrl",
       width: "100px",
       render: (text) => {
-        const style = {
-          fontWeight: 600,
-          paddingLeft: 8,
-          width: "80px",
-          height: "80px",
-        };
         return (
-          <div style={style}>
+          <div className="loadImg">
             <img
               src={text ? `${WEB_SERVER_URL}${text}` : "./images/noImage.jpg"}
               style={{ width: "100%", height: "100%" }}
@@ -97,72 +79,53 @@ function Suppliers() {
       },
     },
     {
-      title: "Email",
+      title: () => {
+        return <BoldText title={"Email"} />;
+      },
       key: "email",
       dataIndex: "email",
+      width: "20%",
     },
     {
-      title: "Số Điện Thoại",
+      title: () => {
+        return <BoldText title={"Số điện thoại"} />;
+      },
       key: "phoneNumber",
       dataIndex: "phoneNumber",
+      width: "10%",
     },
     {
-      title: "Địa chỉ",
+      title: () => {
+        return <BoldText title={"Địa chỉ"} />;
+      },
       key: "address",
       dataIndex: "address",
     },
     {
       title: () => {
-        return <div style={{ paddingLeft: 8, fontWeight: 600 }}>Thao tác</div>;
+        return <BoldText title={"Thao tác"} />;
       },
       key: "actions",
       width: "9%",
       fixed: "right",
       render: (record) => {
         return (
-          <div
-            style={{
-              textAlign: "center",
-              display: "flex",
-              gap: 5,
-              justifyContent: "center",
-            }}
-          >
+          <div className="divActs">
             <Upload
+              method="PATCH"
               showUploadList={false}
               name="file"
-              data={{ imageUrl: record.imageUrl ? record.imageUrl : null }}
               action={
                 "http://localhost:9000/suppliersOnlineShopMongoose/updateOnlyImage/" +
                 record._id
               }
               headers={{ authorization: "authorization-text" }}
-              onChange={(info) => {
-                if (info.file.status !== "uploading") {
-                  console.log(info.file, info.fileList);
-                }
-                if (info.file.status === "done") {
-                  setRefresh((e) => !e);
-                  message.success(
-                    `${info.file.name} được cập nhật thành công!`
-                  );
-                } else if (info.file.status === "error") {
-                  message.error(`${info.file.name} file upload failed.`);
-                }
-              }}
+              onChange={(info) => handleChange_UploadOnlyImage(info)}
             >
               <Button
                 // type='primary'
                 title="Cập nhật ảnh"
-                icon={
-                  <img
-                    src={urlIcon}
-                    width="32px"
-                    height="32px"
-                    alt="test"
-                    background-color="green"
-                  />
-                }
+                icon={<ImgIcon />}
                 style={{ backgroundColor: "#1890ff" }}
               ></Button>
             </Upload>
@@ -170,46 +133,14 @@ function Suppliers() {
               icon={<EditOutlined />}
               type="primary"
               title="Chỉnh sửa"
-              onClick={() => {
-                const savedUrl = [
-                  {
-                    uid: "-1",
-                    // name: 'IMG_0693.JPG',
-                    status: "done",
-                    url: `${WEB_SERVER_URL}${record.imageUrl}`,
-                    thumbUrl: `${WEB_SERVER_URL}${record.imageUrl}`,
-                  },
-                ];
-
-                setIsModalOpen(true);
-                setSelectedId(record._id);
-                setCurrentImageUrl(record.imageUrl ? record.imageUrl : null);
-                setIsChangedImage(false);
-                setIsChangeValueUpload(false);
-
-                updateForm.setFieldsValue({
-                  name: record.name,
-                  description: record.description,
-                  file: record.imageUrl ? savedUrl : [],
-                });
-              }}
+              onClick={() => handleClick_EditBtn(record)}
             ></Button>
             <Popconfirm
               overlayInnerStyle={{ width: 300 }}
               title="Bạn muốn xóa không ?"
               okText="Đồng ý"
               cancelText="Đóng"
-              onConfirm={(values) => {
-                const { _id } = record;
-                axios
-                  .delete(URLSupplier + "/delete-id/" + _id)
-                  .then((response) => {
-                    if (response.status === 200) {
-                      setRefresh((e) => !e);
-                      message.info("Xóa thành công");
-                    }
-                  });
-              }}
+              onConfirm={() => handleConfirmDelete(record._id)}
             >
               <Button
                 icon={<DeleteOutlined />}
@@ -237,13 +168,9 @@ function Suppliers() {
     },
     bordered: true,
     size: "small",
-    scroll: { x: 1500, y: 300 },
+    scroll: { x: 1500 },
     title: () => {
-      return (
-        <div style={{ textAlign: "center", fontWeight: 600, textTransform: 'uppercase' }}>
-          DANH SÁCH NHÀ PHÂN PHỐI
-        </div>
-      );
+      return <TitleTable title="danh sách nhà phân phối" />;
     },
     footer: () =>
       "Nếu có vấn đề khi tương tác với hệ thống, xin vui lòng liên hệ số điện thoại 002233442",
@@ -252,7 +179,13 @@ function Suppliers() {
   const PropsForm = {
     labelCol: { span: 8 },
     wrapperCol: { span: 16 },
-    initialValues: { name: "", email: "", phoneNumber: '', address: '' , file: null },
+    initialValues: {
+      name: "",
+      email: "",
+      phoneNumber: "",
+      address: "",
+      file: null,
+    },
     autoComplete: "off",
   };
 
@@ -280,8 +213,8 @@ function Suppliers() {
     name: "email",
     rules: [
       {
-        type: 'email',
-        message: 'Bạn nhập chưa đúng định dạng email'
+        type: "email",
+        message: "Bạn nhập chưa đúng định dạng email",
       },
       {
         max: 50,
@@ -300,7 +233,7 @@ function Suppliers() {
     rules: [
       {
         pattern: /\(?([0-9]{3})\)?([ .-]?)([0-9]{3})\2([0-9]{4})/,
-        message: 'Bạn chưa nhập đúng định dạng số điện thoại',
+        message: "Bạn chưa nhập đúng định dạng số điện thoại",
       },
       {
         max: 50,
@@ -308,7 +241,7 @@ function Suppliers() {
       },
       {
         whitespace: true,
-        message: "Tên nhà phân phối không thể là khoảng trống",
+        message: "Số điện thoại không thể là khoảng trống",
       },
     ],
   };
@@ -327,7 +260,7 @@ function Suppliers() {
       },
       {
         whitespace: true,
-        message: "Tên nhà phân phối không thể là khoảng trống",
+        message: "Địa chỉ không thể là khoảng trống",
       },
     ],
   };
@@ -343,7 +276,6 @@ function Suppliers() {
     if (Array.isArray(e)) {
       return e;
     }
-    // setFile( e?.fileList.slice(-1))
     return e?.fileList.slice(-1);
   };
   //
@@ -358,10 +290,49 @@ function Suppliers() {
     setFile(null);
   };
   //
+  const handleClick_EditBtn = (record) => {
+    const savedUrl = [
+      {
+        uid: "-1",
+        // name: 'IMG_0693.JPG',
+        status: "done",
+        url: `${WEB_SERVER_URL}${record.imageUrl}`,
+        thumbUrl: `${WEB_SERVER_URL}${record.imageUrl}`,
+      },
+    ];
+
+    setIsModalOpen(true);
+    setSelectedId(record._id);
+    setCurrentImageUrl(record.imageUrl ? record.imageUrl : null);
+    setIsChangedImage(false);
+    setIsChangeValueUpload(false);
+
+    updateForm.setFieldsValue({
+      name: record.name,
+      email: record.email,
+      phoneNumber: record.phoneNumber,
+      address: record.address,
+      file: record.imageUrl ? savedUrl : [],
+    });
+  };
+
+  //
+  const handleChange_UploadOnlyImage = (info) => {
+    if (info.file.status !== "uploading") {
+    }
+    if (info.file.status === "done") {
+      setRefresh((e) => !e);
+      message.success(`${info.file.name} được cập nhật thành công!`);
+    } else if (info.file.status === "error") {
+      message.error(`${info.file.name} file cập nhật thất bại.`);
+    }
+  };
+
+  //
   const handleFinishCreate = (values) => {
     //SUBMIT
     let formData = null;
-    let newData = values;
+    let newData = { ...values };
     let URL = URLSupplier + "/insertWithoutImage";
 
     //If containing an image <=> file !== null
@@ -371,7 +342,9 @@ function Suppliers() {
       formData = new FormData();
       formData.append("file", file);
       formData.append("name", values.name);
-      formData.append("description", values.description);
+      formData.append("email", values.email);
+      formData.append("phoneNumber", values.phoneNumber);
+      formData.append("address", values.address);
       newData = formData;
     }
 
@@ -392,11 +365,11 @@ function Suppliers() {
         }
       })
       .catch((error) => {
-        message.error(error.response.data.errMsgMongoDB.message);
-        // notification.info({
-        //   message: errorText.name,
-        //   description: errorText.message,
-        // });
+        message.error(
+          error.response.data.error.message
+            ? error.response.data.error.message
+            : error
+        );
       })
       .finally(() => {
         setUploading(false);
@@ -406,14 +379,14 @@ function Suppliers() {
   const handleFinishUpdate = (values) => {
     //SUBMIT
     let formData = null;
-    let isChangedImageUrl = true;
+    let isChangeImgUrl = true;
     if (!isChangeValueUpload && !isChangedImage) {
-      isChangedImageUrl = false;
+      isChangeImgUrl = false;
     }
     let newData = {
       ...values,
       imageUrl: currentImageUrl,
-      isChangedImageUrl: isChangedImageUrl,
+      isChangeImgUrl,
     };
     let URL = URLSupplier + "/updateByIdWithoutImage/" + selectedId;
     //If containing an image <=> file !== null
@@ -422,8 +395,9 @@ function Suppliers() {
       formData = new FormData();
       formData.append("file", file);
       formData.append("name", values.name);
-      formData.append("description", values.description);
-      formData.append("imageUrl", currentImageUrl);
+      formData.append("email", values.email);
+      formData.append("phoneNumber", values.phoneNumber);
+      formData.append("address", values.address);
       newData = formData;
     }
     //POST
@@ -446,16 +420,29 @@ function Suppliers() {
         }
       })
       .catch((error) => {
-        message.error(error.response.data.errMsgMongoDB.message);
+        message.error(
+          error.response.data.error.message
+            ? error.response.data.error.message
+            : error
+        );
       })
       .finally(() => {
         setUploading(false);
       });
   };
-
+  //
+  const handleConfirmDelete = (_id) => {
+    axios.delete(URLSupplier + "/delete-id/" + _id).then((response) => {
+      if (response.status === 200) {
+        setRefresh((e) => !e);
+        message.info("Xóa thành công");
+      }
+    });
+  };
   useEffect(() => {
     axios.get(URLSupplier).then((response) => {
       setCategories(response.data.result);
+      setTotalDocs(response.data.result.length);
     });
   }, [refresh]);
   //
@@ -469,10 +456,7 @@ function Suppliers() {
           name="createForm"
           onFinish={handleFinishCreate}
           onFinishFailed={(error) => {
-            console.error({
-              name: "Error at onFinishFailed at CreateForm",
-              message: error,
-            });
+            message.info("Error at onFinishFailed at UpdateForm");
           }}
         >
           <Form.Item {...PropsFormItemName}>
@@ -488,7 +472,7 @@ function Suppliers() {
           </Form.Item>
 
           <Form.Item {...PropsFormItemAddress}>
-            <TextArea rows={3}  placeholder="Địa chỉ của nhà phân phối" />
+            <TextArea rows={3} placeholder="Địa chỉ của nhà phân phối" />
           </Form.Item>
 
           <Form.Item
@@ -503,7 +487,7 @@ function Suppliers() {
                 setFile(file);
                 return false;
               }}
-              onRemove={(file) => {
+              onRemove={() => {
                 setFile(null);
               }}
             >
@@ -528,7 +512,13 @@ function Suppliers() {
           {...PropsTable}
           columns={columns}
           dataSource={categories}
-          pagination={false}
+          pagination={{
+            total: totalDocs,
+            showTotal: (totalDocs, range) =>
+              `${range[0]}-${range[1]} of ${totalDocs} items`,
+            defaultPageSize: 10,
+            defaultCurrent: 1,
+          }}
         />
 
         <Modal
@@ -543,28 +533,25 @@ function Suppliers() {
             form={updateForm}
             name="updateForm"
             onFinish={handleFinishUpdate}
-            onFinishFailed={(error) => {
-              console.error({
-                name: "Error at onFinishFailed at UpdateForm",
-                message: error,
-              });
+            onFinishFailed={() => {
+              message.info("Error at onFinishFailed at UpdateForm");
             }}
           >
             <Form.Item {...PropsFormItemName}>
-            <Input placeholder="Tên nhà phân phối " />
-          </Form.Item>
+              <Input placeholder="Tên nhà phân phối " />
+            </Form.Item>
 
-          <Form.Item {...PropsFormItemEmail}>
-            <Input placeholder="Email" />
-          </Form.Item>
+            <Form.Item {...PropsFormItemEmail}>
+              <Input placeholder="Email" />
+            </Form.Item>
 
-          <Form.Item {...PropsFormItemPhoneNumber}>
-            <Input placeholder="Số điện thoại của nhà phân phối" />
-          </Form.Item>
+            <Form.Item {...PropsFormItemPhoneNumber}>
+              <Input placeholder="Số điện thoại của nhà phân phối" />
+            </Form.Item>
 
-          <Form.Item {...PropsFormItemAddress}>
-            <TextArea placeholder="Địa chỉ của nhà phân phối" />
-          </Form.Item>
+            <Form.Item {...PropsFormItemAddress}>
+              <TextArea placeholder="Địa chỉ của nhà phân phối" />
+            </Form.Item>
 
             <Form.Item
               {...PropsFormItemUpload}
@@ -579,7 +566,7 @@ function Suppliers() {
                   setFile(file);
                   return false;
                 }}
-                onRemove={(file) => {
+                onRemove={() => {
                   setFile(null);
                 }}
               >

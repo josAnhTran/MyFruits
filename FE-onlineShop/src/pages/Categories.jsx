@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-
+import "./css/CommonStyle.css";
 import axios from "axios";
 
 import {
@@ -13,6 +13,7 @@ import {
   notification,
   Modal,
   Upload,
+  Pagination,
 } from "antd";
 import { Content } from "antd/lib/layout/layout";
 import {
@@ -23,12 +24,17 @@ import {
 import TextArea from "antd/lib/input/TextArea";
 
 import { URLCategory, WEB_SERVER_URL } from "../functions/constants";
-import LabelCustomization from "./components/subComponents";
+import LabelCustomization, {
+  ImgIcon,
+  BoldText,
+  TitleTable,
+} from "./components/subComponents";
 
 function Categories() {
   const [uploading, setUploading] = useState(false);
   const [file, setFile] = useState(null);
   const [categories, setCategories] = useState([]);
+  const [totalDocs, setTotalDocs] = useState(0);
   const [refresh, setRefresh] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
@@ -39,46 +45,31 @@ function Categories() {
   const [createForm] = Form.useForm();
   const [updateForm] = Form.useForm();
 
-  const urlIcon = "./imageIcons/icon03.png";
-
   const columns = [
     {
       title: () => {
-        return (
-          <div style={{ paddingLeft: 8, fontWeight: 600, textTransform: 'capitalize'}}>Tên Danh Mục</div>
-        );
+        return <BoldText title={"Danh mục "} />;
       },
       key: "name",
       dataIndex: "name",
       width: "10%",
-      fixed: 'left',
+      fixed: "left",
       // defaultSortOrder: 'ascend',
       sorter: (a, b) => a.name.length - b.name.length,
       render: (text) => {
-        const style = {
-          fontWeight: 600,
-          paddingLeft: 8,
-          textTransform: "capitalize" 
-        };
-        return <div style={style}>{text}</div>;
+        return <BoldText title={text} />;
       },
     },
     {
       title: () => {
-        return <div style={{ paddingLeft: 8, fontWeight: 600 }}>Hình ảnh</div>;
+        return <BoldText title={"Hình ảnh"} />;
       },
       key: "imageUrl",
       dataIndex: "imageUrl",
       width: "100px",
       render: (text) => {
-        const style = {
-          fontWeight: 600,
-          paddingLeft: 8,
-          width: "80px",
-          height: "80px",
-        };
         return (
-          <div style={style}>
+          <div className="loadImg">
             <img
               src={text ? `${WEB_SERVER_URL}${text}` : "./images/noImage.jpg"}
               style={{ width: "100%", height: "100%" }}
@@ -88,65 +79,38 @@ function Categories() {
         );
       },
     },
-   
 
     {
-      title: "Mô tả",
+      title: () => {
+        return <BoldText title={"Mô tả"} />;
+      },
       key: "description",
       dataIndex: "description",
     },
     {
       title: () => {
-        return <div style={{ paddingLeft: 8, fontWeight: 600 }}>Thao tác</div>;
+        return <BoldText title={"Thao tác"} />;
       },
       key: "actions",
       width: "9%",
       fixed: "right",
       render: (record) => {
         return (
-          <div
-            style={{
-              textAlign: "center",
-              display: "flex",
-              gap: 5,
-              justifyContent: "center",
-            }}
-          >
+          <div className="divActs">
             <Upload
+              method="PATCH"
               showUploadList={false}
               name="file"
-              data={{ imageUrl: record.imageUrl ? record.imageUrl : null }}
               action={
                 "http://localhost:9000/categoriesOnlineShopMongoose/updateOnlyImage/" +
                 record._id
               }
               headers={{ authorization: "authorization-text" }}
-              onChange={(info) => {
-                if (info.file.status !== "uploading") {
-                  console.log(info.file, info.fileList);
-                }
-                if (info.file.status === "done") {
-                  setRefresh((e) => !e);
-                  message.success(
-                    `${info.file.name} được cập nhật thành công!`
-                  );
-                } else if (info.file.status === "error") {
-                  message.error(`${info.file.name} file upload failed.`);
-                }
-              }}
+              onChange={(info) => handleChange_UploadOnlyImage(info)}
             >
               <Button
-                // type='primary'
                 title="Cập nhật ảnh"
-                icon={
-                  <img
-                    src={urlIcon}
-                    width="32px"
-                    height="32px"
-                    alt="test"
-                    background-color="green"
-                  />
-                }
+                icon={<ImgIcon />}
                 style={{ backgroundColor: "#1890ff" }}
               ></Button>
             </Upload>
@@ -154,46 +118,14 @@ function Categories() {
               icon={<EditOutlined />}
               type="primary"
               title="Chỉnh sửa"
-              onClick={() => {
-                const savedUrl = [
-                  {
-                    uid: "-1",
-                    // name: 'IMG_0693.JPG',
-                    status: "done",
-                    url: `${WEB_SERVER_URL}${record.imageUrl}`,
-                    thumbUrl: `${WEB_SERVER_URL}${record.imageUrl}`,
-                  },
-                ];
-
-                setIsModalOpen(true);
-                setSelectedId(record._id);
-                setCurrentImageUrl(record.imageUrl ? record.imageUrl : null);
-                setIsChangedImage(false);
-                setIsChangeValueUpload(false);
-
-                updateForm.setFieldsValue({
-                  name: record.name,
-                  description: record.description,
-                  file: record.imageUrl ? savedUrl : [],
-                });
-              }}
+              onClick={() => handleClick_EditBtn(record)}
             ></Button>
             <Popconfirm
               overlayInnerStyle={{ width: 300 }}
               title="Bạn muốn xóa không ?"
               okText="Đồng ý"
               cancelText="Đóng"
-              onConfirm={(values) => {
-                const { _id } = record;
-                axios
-                  .delete(URLCategory + "/delete-id/" + _id)
-                  .then((response) => {
-                    if (response.status === 200) {
-                      setRefresh((e) => !e);
-                      message.info("Xóa thành công");
-                    }
-                  });
-              }}
+              onConfirm={() => handleConfirmDelete(record._id)}
             >
               <Button
                 icon={<DeleteOutlined />}
@@ -221,13 +153,9 @@ function Categories() {
     },
     bordered: true,
     size: "small",
-    scroll: { x: 1500, y: 300 },
+    scroll: { x: 1500, y: 400 },
     title: () => {
-      return (
-        <div style={{ textAlign: "center", fontWeight: 600 }}>
-          DANH SÁCH DANH MỤC HÀNG HÓA
-        </div>
-      );
+      return <TitleTable title="danh sách danh mục hàng hóa" />;
     },
     footer: () =>
       "Nếu có vấn đề khi tương tác với hệ thống, xin vui lòng liên hệ số điện thoại 002233442",
@@ -254,8 +182,8 @@ function Categories() {
       },
       {
         whitespace: true,
-        message: "Tên danh mục không thể là khoảng trống"
-      }
+        message: "Tên danh mục không thể là khoảng trống",
+      },
     ],
   };
 
@@ -282,7 +210,6 @@ function Categories() {
     if (Array.isArray(e)) {
       return e;
     }
-    // setFile( e?.fileList.slice(-1))
     return e?.fileList.slice(-1);
   };
   //
@@ -297,10 +224,45 @@ function Categories() {
     setFile(null);
   };
   //
+  const handleClick_EditBtn = (record) => {
+    const savedUrl = [
+      {
+        uid: "-1",
+        // name: 'IMG_0693.JPG',
+        status: "done",
+        url: `${WEB_SERVER_URL}${record.imageUrl}`,
+        thumbUrl: `${WEB_SERVER_URL}${record.imageUrl}`,
+      },
+    ];
+
+    setIsModalOpen(true);
+    setSelectedId(record._id);
+    setCurrentImageUrl(record.imageUrl ? record.imageUrl : null);
+    setIsChangedImage(false);
+    setIsChangeValueUpload(false);
+
+    updateForm.setFieldsValue({
+      name: record.name,
+      description: record.description,
+      file: record.imageUrl ? savedUrl : [],
+    });
+  };
+  //
+  const handleChange_UploadOnlyImage = (info) => {
+    if (info.file.status !== "uploading") {
+    }
+    if (info.file.status === "done") {
+      setRefresh((e) => !e);
+      message.success(`${info.file.name} được cập nhật thành công!`);
+    } else if (info.file.status === "error") {
+      message.error(`${info.file.name} file cập nhật thất bại.`);
+    }
+  };
+  //
   const handleFinishCreate = (values) => {
     //SUBMIT
     let formData = null;
-    let newData = values;
+    let newData = { ...values };
     let URL = URLCategory + "/insertWithoutImage";
 
     //If containing an image <=> file !== null
@@ -331,28 +293,28 @@ function Categories() {
         }
       })
       .catch((error) => {
-        message.error(error.response.data.errMsgMongoDB.message)
-        // notification.info({
-        //   message: errorText.name,
-        //   description: errorText.message,
-        // });
+        message.error(
+          error.response.data.error.message
+            ? error.response.data.error.message
+            : error
+        );
       })
       .finally(() => {
         setUploading(false);
       });
   };
-
+  //
   const handleFinishUpdate = (values) => {
     //SUBMIT
     let formData = null;
-    let isChangedImageUrl = true;
+    let isChangeImgUrl = true;
     if (!isChangeValueUpload && !isChangedImage) {
-      isChangedImageUrl = false;
+      isChangeImgUrl = false;
     }
     let newData = {
       ...values,
       imageUrl: currentImageUrl,
-      isChangedImageUrl: isChangedImageUrl,
+      isChangeImgUrl,
     };
     let URL = URLCategory + "/updateByIdWithoutImage/" + selectedId;
     //If containing an image <=> file !== null
@@ -362,7 +324,6 @@ function Categories() {
       formData.append("file", file);
       formData.append("name", values.name);
       formData.append("description", values.description);
-      formData.append("imageUrl", currentImageUrl);
       newData = formData;
     }
     //POST
@@ -385,16 +346,30 @@ function Categories() {
         }
       })
       .catch((error) => {
-        message.error(error.response.data.errMsgMongoDB.message)
+        message.error(
+          error.response.data.error.message
+            ? error.response.data.error.message
+            : error
+        );
       })
       .finally(() => {
         setUploading(false);
       });
   };
+  //
+  const handleConfirmDelete = (_id) => {
+    axios.delete(URLCategory + "/delete-id/" + _id).then((response) => {
+      if (response.status === 200) {
+        setRefresh((e) => !e);
+        message.info("Xóa thành công");
+      }
+    });
+  };
 
   useEffect(() => {
     axios.get(URLCategory).then((response) => {
       setCategories(response.data.result);
+      setTotalDocs(response.data.result.length);
     });
   }, [refresh]);
   //
@@ -407,14 +382,11 @@ function Categories() {
           form={createForm}
           name="createForm"
           onFinish={handleFinishCreate}
-          onFinishFailed={(error) => {
-            console.error({
-              name: "Error at onFinishFailed at CreateForm",
-              message: error,
-            });
+          onFinishFailed={() => {
+            message.info("Error at onFinishFailed at UpdateForm");
           }}
         >
-          <Form.Item {...PropsFormItemName} >
+          <Form.Item {...PropsFormItemName}>
             <Input placeholder="Tên danh mục mới" />
           </Form.Item>
 
@@ -434,7 +406,7 @@ function Categories() {
                 setFile(file);
                 return false;
               }}
-              onRemove={(file) => {
+              onRemove={() => {
                 setFile(null);
               }}
             >
@@ -459,9 +431,14 @@ function Categories() {
           {...PropsTable}
           columns={columns}
           dataSource={categories}
-          pagination={false}
+          pagination={{
+            total: totalDocs,
+            showTotal: (totalDocs, range) =>
+              `${range[0]}-${range[1]} of ${totalDocs} items`,
+            defaultPageSize: 10,
+            defaultCurrent: 1,
+          }}
         />
-
         <Modal
           title="Chỉnh sửa thông tin danh mục"
           open={isModalOpen}
@@ -474,14 +451,11 @@ function Categories() {
             form={updateForm}
             name="updateForm"
             onFinish={handleFinishUpdate}
-            onFinishFailed={(error) => {
-              console.error({
-                name: "Error at onFinishFailed at UpdateForm",
-                message: error,
-              });
+            onFinishFailed={() => {
+              message.info("Error at onFinishFailed at UpdateForm");
             }}
           >
-            <Form.Item {...PropsFormItemName} >
+            <Form.Item {...PropsFormItemName}>
               <Input placeholder="Tên danh mục " />
             </Form.Item>
 
@@ -502,7 +476,7 @@ function Categories() {
                   setFile(file);
                   return false;
                 }}
-                onRemove={(file) => {
+                onRemove={() => {
                   setFile(null);
                 }}
               >
