@@ -1,6 +1,8 @@
 "use strict";
 var express = require("express");
 var router = express.Router();
+const passport = require("passport");
+
 const { default: mongoose } = require("mongoose");
 const Category = require("../../model/Category");
 
@@ -602,7 +604,7 @@ router.delete("/delete-id/:id", validateId, async (req, res, next) => {
 //
 
 //Get all categories
-router.get("/", async (req, res, next) => {
+router.get("/",passport.authenticate("jwt", { session: false }), async (req, res, next) => {
   try {
     // const categories = await Category.find().sort({ _id: -1 });
     const categories = await Category.find();

@@ -38,6 +38,7 @@ const {
   updateManySupplierSchema,
 } = require("../../helpers/schemas/schemasSuppliersOnlineShop.yup");
 const { loadSupplier, validateId } = require("../../helpers/commonValidators");
+const passport = require("passport");
 
 //
 const storage = multer.diskStorage({
@@ -601,7 +602,7 @@ router.delete("/delete-id/:id", validateId, async (req, res, next) => {
 //
 
 //Get all categories
-router.get("/", async (req, res, next) => {
+router.get("/",passport.authenticate("jwt", { session: false }), async (req, res, next) => {
   try {
     // const categories = await Supplier.find().sort({ _id: -1 });
     const categories = await Supplier.find();
