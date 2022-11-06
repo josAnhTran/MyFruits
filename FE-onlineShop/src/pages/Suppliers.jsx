@@ -42,8 +42,8 @@ function Suppliers() {
   const [isChangedImage, setIsChangedImage] = useState(false);
   const [isChangeValueUpload, setIsChangeValueUpload] = useState(false);
 
-  const [createForm] = Form.useForm();
-  const [updateForm] = Form.useForm();
+  const [formCreate] = Form.useForm();
+  const [formUpdate] = Form.useForm();
   const columns = [
     {
       title: () => {
@@ -168,7 +168,7 @@ function Suppliers() {
     },
     bordered: true,
     size: "small",
-    scroll: { x: 1500 },
+    scroll: { x: 1500, y: 400 },
     title: () => {
       return <TitleTable title="danh sách nhà phân phối" />;
     },
@@ -281,7 +281,7 @@ function Suppliers() {
   //
 
   const handleOk = () => {
-    updateForm.submit();
+    formUpdate.submit();
   };
   //
 
@@ -307,7 +307,7 @@ function Suppliers() {
     setIsChangedImage(false);
     setIsChangeValueUpload(false);
 
-    updateForm.setFieldsValue({
+    formUpdate.setFieldsValue({
       name: record.name,
       email: record.email,
       phoneNumber: record.phoneNumber,
@@ -338,13 +338,11 @@ function Suppliers() {
     //If containing an image <=> file !== null
     if (file) {
       URL = URLSupplier + "/insertWithImage";
-
       formData = new FormData();
+      for (let key in values) {
+        formData.append(key, values[key]);
+      }
       formData.append("file", file);
-      formData.append("name", values.name);
-      formData.append("email", values.email);
-      formData.append("phoneNumber", values.phoneNumber);
-      formData.append("address", values.address);
       newData = formData;
     }
 
@@ -357,7 +355,7 @@ function Suppliers() {
           if (file) {
             setFile(null);
           }
-          createForm.resetFields();
+          formCreate.resetFields();
           notification.info({
             message: "Thông báo",
             description: "Thêm mới thành công",
@@ -393,11 +391,10 @@ function Suppliers() {
     if (file) {
       URL = URLSupplier + "/updateByIdWithImage/" + selectedId;
       formData = new FormData();
+      for (let key in values) {
+        formData.append(key, values[key]);
+      }
       formData.append("file", file);
-      formData.append("name", values.name);
-      formData.append("email", values.email);
-      formData.append("phoneNumber", values.phoneNumber);
-      formData.append("address", values.address);
       newData = formData;
     }
     //POST
@@ -441,8 +438,8 @@ function Suppliers() {
   };
   useEffect(() => {
     axios.get(URLSupplier).then((response) => {
-      setCategories(response.data.result);
-      setTotalDocs(response.data.result.length);
+      setCategories(response.data.results);
+      setTotalDocs(response.data.results.length);
     });
   }, [refresh]);
   //
@@ -452,11 +449,12 @@ function Suppliers() {
       <Content style={{ padding: 24 }}>
         <Form
           {...PropsForm}
-          form={createForm}
-          name="createForm"
+          form={formCreate}
+          name="formCreate"
           onFinish={handleFinishCreate}
           onFinishFailed={(error) => {
-            message.info("Error at onFinishFailed at UpdateForm");
+            // message.info("Error at onFinishFailed at formCreate");
+            console.error("Error at onFinishFailed at formCreate");
           }}
         >
           <Form.Item {...PropsFormItemName}>
@@ -530,11 +528,12 @@ function Suppliers() {
         >
           <Form
             {...PropsForm}
-            form={updateForm}
-            name="updateForm"
+            form={formUpdate}
+            name="formUpdate"
             onFinish={handleFinishUpdate}
             onFinishFailed={() => {
-              message.info("Error at onFinishFailed at UpdateForm");
+              // message.info("Error at onFinishFailed at formUpdate");
+              console.error("Error at onFinishFailed at formUpdate");
             }}
           >
             <Form.Item {...PropsFormItemName}>

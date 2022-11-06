@@ -14,11 +14,12 @@ const {
   PATH_FOLDER_PUBLIC,
   PATH_FOLDER_IMAGES,
   FOLDER_INITIATION,
+  COLLECTION_CATEGORIES
 } = require("../../helpers/constants");
 
-const COLLECTION_NAME = "categories";
 mongoose.connect(URL_APP_SERVER);
 const { formatterErrorFunc } = require("../../helpers/formatterError");
+const { loadCategory, validateId } = require("../../helpers/commonValidators");
 
 const {
   insertDocument,
@@ -39,7 +40,6 @@ const {
   search_deleteWithId,
   search_deleteManyCategoriesSchema,
 } = require("../../helpers/schemas/schemasCategoriesOnlineShop.yup");
-const { loadCategory, validateId } = require("../../helpers/commonValidators");
 
 //
 const storage = multer.diskStorage({
@@ -49,7 +49,7 @@ const storage = multer.diskStorage({
       lastLocation = req.params.id;
     }
     // let PATH = `./public/images/categories/${subLocation}`;
-    let PATH = `${PATH_FOLDER_PUBLIC}${PATH_FOLDER_IMAGES}/${COLLECTION_NAME}/${lastLocation}`;
+    let PATH = `${PATH_FOLDER_PUBLIC}${PATH_FOLDER_IMAGES}/${COLLECTION_CATEGORIES}/${lastLocation}`;
     if (!fs.existsSync(PATH)) {
       fs.mkdirSync(PATH);
     }
@@ -64,6 +64,20 @@ const storage = multer.diskStorage({
 
 const uploadImg = multer({ storage: storage }).single("file");
 
+//Get all docs
+// router.get("/",passport.authenticate("jwt", { session: false }), async (req, res, next) => {
+  router.get("/", async (req, res, next) => {
+    try {
+      const docs = await Category.find().sort({ _id: -1 });
+      // const docs = await Category.find();
+      res.json({ ok: true, results: docs });
+    } catch (err) {
+      const errMsgMongoDB = formatterErrorFunc(err, COLLECTION_CATEGORIES);
+      res.status(400).json({ ok: false, error: errMsgMongoDB });
+    }
+  });
+  //
+  
 // Just update field: image file
 router.patch("/updateOnlyImage/:id", loadCategory, (req, res) => {
   // Func loadCategory validate id; check existing the document with id in the collection
@@ -94,7 +108,7 @@ router.patch("/updateOnlyImage/:id", loadCategory, (req, res) => {
         const currentDirPath = PATH_FOLDER_PUBLIC + currentImgUrl;
         const opts = { runValidators: true };
         newImgUrl = req.file.filename
-          ? `${PATH_FOLDER_IMAGES}/${COLLECTION_NAME}/${categoryId}/${req.file.filename}`
+          ? `${PATH_FOLDER_IMAGES}/${COLLECTION_CATEGORIES}/${categoryId}/${req.file.filename}`
           : null;
         //Update in Mongodb
         const updatedDoc = await Category.findByIdAndUpdate(
@@ -153,7 +167,7 @@ router.patch("/updateOnlyImage/:id", loadCategory, (req, res) => {
       }
     } catch (errMongoDB) {
       // Error when updating the updatedDoc in Mongodb, let check the exists of the new image in DiskStorage and remove it before res.status(400)...
-      const errMsgMongoDB = formatterErrorFunc(errMongoDB, COLLECTION_NAME);
+      const errMsgMongoDB = formatterErrorFunc(errMongoDB, COLLECTION_CATEGORIES);
 
       try {
         // const newDirPath = './public/' + imageUrl;
@@ -229,7 +243,7 @@ router.post("/insertWithImage", (req, res, next) => {
         //else, continue
 
         // const imageUrl = `/images/categories/initiation/${req.file.filename}`;
-        imageUrl = `${PATH_FOLDER_IMAGES}/${COLLECTION_NAME}/${FOLDER_INITIATION}/${req.file.filename}`;
+        imageUrl = `${PATH_FOLDER_IMAGES}/${COLLECTION_CATEGORIES}/${FOLDER_INITIATION}/${req.file.filename}`;
         const newData = { ...req.body, imageUrl };
 
         //Create a new blog post object
@@ -240,7 +254,7 @@ router.post("/insertWithImage", (req, res, next) => {
       }
     } catch (errMongoDB) {
       // Error when adding new data to Mongodb, let check the exists of the new image in DiskStorage and remove it before res.status(400)...
-      const errMsgMongoDB = formatterErrorFunc(errMongoDB, COLLECTION_NAME);
+      const errMsgMongoDB = formatterErrorFunc(errMongoDB, COLLECTION_CATEGORIES);
       try {
         // const newDirPath = './public/' + imageUrl;
         const newDirPath = PATH_FOLDER_PUBLIC + imageUrl;
@@ -299,7 +313,7 @@ router.post("/insertWithoutImage", async (req, res) => {
     await newDoc.save();
     res.status(201).json({ ok: true, result: newDoc });
   } catch (errMongoDB) {
-    const errMsgMongoDB = formatterErrorFunc(errMongoDB, COLLECTION_NAME);
+    const errMsgMongoDB = formatterErrorFunc(errMongoDB, COLLECTION_CATEGORIES);
     res.status(400).json({ ok: false, error: errMsgMongoDB });
   }
 });
@@ -343,7 +357,7 @@ router.patch("/updateByIdWithImage/:id", loadCategory, (req, res) => {
         const currentDirPath = currentImgUrl
           ? PATH_FOLDER_PUBLIC + currentImgUrl
           : "";
-        const newImgUrl = `${PATH_FOLDER_IMAGES}/${COLLECTION_NAME}/${categoryId}/${req.file.filename}`;
+        const newImgUrl = `${PATH_FOLDER_IMAGES}/${COLLECTION_CATEGORIES}/${categoryId}/${req.file.filename}`;
 
         //-----If adding the new image into DiskStorage successful, then...
         // console.log({ok: true, message: 'Add the new updating image in to DiskStorage successfully'})
@@ -409,7 +423,7 @@ router.patch("/updateByIdWithImage/:id", loadCategory, (req, res) => {
       }
     } catch (errMongoDB) {
       // Error when updating new data to Mongodb, let check the exists of the new image in DiskStorage and remove it before res.status(400)...
-      const errMsgMongoDB = formatterErrorFunc(errMongoDB, COLLECTION_NAME);
+      const errMsgMongoDB = formatterErrorFunc(errMongoDB, COLLECTION_CATEGORIES);
 
       try {
         const newDirPath = PATH_FOLDER_PUBLIC + newImgUrl;
@@ -524,7 +538,7 @@ router.patch("/updateByIdWithoutImage/:id", validateId , async (req, res) => {
       }
     }
   } catch (errMongoDB) {
-    const errMsgMongoDB = formatterErrorFunc(errMongoDB, COLLECTION_NAME);
+    const errMsgMongoDB = formatterErrorFunc(errMongoDB, COLLECTION_CATEGORIES);
     res.status(400).json({ ok:true, error: errMsgMongoDB });
   }
 });
@@ -541,7 +555,7 @@ router.delete("/delete-id/:id", validateId, async (req, res, next) => {
         ok: true,
         error: {
           name: "id",
-          message: `the document with following id doesn't exist in the collection ${COLLECTION_NAME}`,
+          message: `the document with following id doesn't exist in the collection ${COLLECTION_CATEGORIES}`,
         },
       });
       return;
@@ -553,7 +567,7 @@ router.delete("/delete-id/:id", validateId, async (req, res, next) => {
         PATH_FOLDER_PUBLIC +
         PATH_FOLDER_IMAGES +
         "/" +
-        COLLECTION_NAME +
+        COLLECTION_CATEGORIES +
         "/" +
         id;
       if (fs.existsSync(pathFolderImages)) {
@@ -593,7 +607,7 @@ router.delete("/delete-id/:id", validateId, async (req, res, next) => {
       });
     }
   } catch (errMongoDB) {
-    const errMsgMongoDB = formatterErrorFunc(errMongoDB, COLLECTION_NAME);
+    const errMsgMongoDB = formatterErrorFunc(errMongoDB, COLLECTION_CATEGORIES);
     res.status(400).json({
       ok: false,
       message: "Failed to delete the document with ID",
@@ -603,19 +617,6 @@ router.delete("/delete-id/:id", validateId, async (req, res, next) => {
 });
 //
 
-//Get all categories
-router.get("/",passport.authenticate("jwt", { session: false }), async (req, res, next) => {
-  try {
-    // const categories = await Category.find().sort({ _id: -1 });
-    const categories = await Category.find();
-    res.json({ ok: true, result: categories });
-  } catch (err) {
-    const errMsgMongoDB = formatterErrorFunc(err, COLLECTION_NAME);
-
-    res.status(400).json({ ok: false, error: errMsgMongoDB });
-  }
-});
-//
 
 //FUNCTION NOT STILL USE----------------------------------------------------------------------------------------------------------------------------------
 
@@ -632,7 +633,7 @@ router.get("/",passport.authenticate("jwt", { session: false }), async (req, res
 
 // router.get('/search-many', validateSchema(search_deleteManyCategoriesSchema), function(req, res, next) {
 //   const query= req.query;
-//   findDocuments({query: query}, COLLECTION_NAME)
+//   findDocuments({query: query}, COLLECTION_CATEGORIES)
 //     .then(result => res.status(200).json(result))
 //     .catch(err => res.status(500).json({findFunction: "failed", err: err}))
 // })
@@ -641,7 +642,7 @@ router.get("/",passport.authenticate("jwt", { session: false }), async (req, res
 //Insert Many  -- haven't validation yet
 //  router.post('/insert-many', validateSchema(insertManyCategoriesSchema), function (req, res, next){
 //   const list = req.body;
-//   insertDocuments(list, COLLECTION_NAME)
+//   insertDocuments(list, COLLECTION_CATEGORIES)
 //   .then(result => {
 //     res.status(201).json({ok: true, result})
 //   })
@@ -654,7 +655,7 @@ router.get("/",passport.authenticate("jwt", { session: false }), async (req, res
 // router.patch('/update-many',validateSchema(updateManyCategorySchema), function(req, res, next){
 //   const query = req.query;
 //   const newValues = req.body;
-//   updateDocuments(query, newValues, COLLECTION_NAME)
+//   updateDocuments(query, newValues, COLLECTION_CATEGORIES)
 //     .then(result => {
 //       res.status(201).json({update: true, result: result})
 //     })
@@ -676,7 +677,7 @@ router.get("/",passport.authenticate("jwt", { session: false }), async (req, res
 //       console.log({message: 'File Image is delete from DiskStorage '})
 
 //       //handling remove the field imageUrl after delete the picture of this id
-//       removeFieldById(ObjectId(id), {imageUrl: ''}, COLLECTION_NAME)
+//       removeFieldById(ObjectId(id), {imageUrl: ''}, COLLECTION_CATEGORIES)
 //       .then(result => {
 //         res.status(201).json({removing : true, message: 'Remove field imageUrl successful', result: result})
 //       })
@@ -695,7 +696,7 @@ router.get("/",passport.authenticate("jwt", { session: false }), async (req, res
 // router.delete('/delete-many',validateSchema(search_deleteManyCategoriesSchema), function(req, res, next) {
 //   const query= req.query;
 
-//   deleteMany(query, COLLECTION_NAME)
+//   deleteMany(query, COLLECTION_CATEGORIES)
 //     .then(result => res.status(200).json(result))
 //     .catch(err => res.status(500).json({deleteFunction: "failed", err: err}))
 // })
@@ -731,7 +732,7 @@ router.get("/products", function (req, res) {
       },
     },
   ];
-  findDocuments({ aggregate: aggregate }, COLLECTION_NAME)
+  findDocuments({ aggregate: aggregate }, COLLECTION_CATEGORIES)
     .then((result) => {
       res.json(result);
     })
@@ -836,7 +837,7 @@ router.get("/totalPrice", function (req, res) {
       },
     },
   ];
-  findDocuments({ aggregate: aggregate }, COLLECTION_NAME)
+  findDocuments({ aggregate: aggregate }, COLLECTION_CATEGORIES)
     .then((result) => {
       res.json(result);
     })

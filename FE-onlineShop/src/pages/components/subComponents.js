@@ -1,16 +1,19 @@
 import React from "react";
+import numeral from "numeral";
+
 const urlIcon = "./imageIcons/icon03.png";
 
 function LabelCustomization({ title }) {
   return <div style={{ fontWeight: 600 }}>{title}</div>;
 }
 
-function BoldText({title}) {
+function BoldText({ title, position= 'left' }) {
   return (
     <div
       style={{
         fontWeight: 600,
         textTransform: "capitalize",
+        textAlign: position
       }}
     >
       {title}
@@ -18,6 +21,13 @@ function BoldText({title}) {
   );
 }
 //
+function NumberFormatter({ text, symbol }) {
+  return (
+    <div style={{ textAlign: "right" }}> {numeral(text).format("0,0")}{symbol? symbol: ''}</div>
+  );
+}
+//
+
 function ImgIcon() {
   return (
     <img
@@ -30,7 +40,7 @@ function ImgIcon() {
   );
 }
 //
-function TitleTable({text}) {
+function TitleTable({ text }) {
   return (
     <div
       style={{
@@ -45,4 +55,4 @@ function TitleTable({text}) {
 }
 
 export default LabelCustomization;
-export { BoldText, ImgIcon, TitleTable };
+export { BoldText, ImgIcon, TitleTable, NumberFormatter };

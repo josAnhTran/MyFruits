@@ -9,6 +9,7 @@ import Suppliers from './pages/Suppliers';
 import Customers from './pages/Customers';
 import Employees from './pages/Employees';
 import Products from './pages/Products';
+import Home from './pages/Home';
 
 
 function App() {
@@ -48,7 +49,7 @@ function App() {
       {/* ROUTES SETTINGS */}
       <div className={styles.routerArea}>
         <Routes>
-          <Route path='/' element={<Index/>}/>
+          <Route path='/' element={<Home/>}/>
           <Route path='/index' element={<Index/>}/>
           <Route path='/orders' element={<Orders/>}/>
           <Route path='/categories' element={<Categories/>}/>

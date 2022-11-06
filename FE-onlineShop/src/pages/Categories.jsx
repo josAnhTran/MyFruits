@@ -13,7 +13,6 @@ import {
   notification,
   Modal,
   Upload,
-  Pagination,
 } from "antd";
 import { Content } from "antd/lib/layout/layout";
 import {
@@ -42,8 +41,8 @@ function Categories() {
   const [isChangedImage, setIsChangedImage] = useState(false);
   const [isChangeValueUpload, setIsChangeValueUpload] = useState(false);
 
-  const [createForm] = Form.useForm();
-  const [updateForm] = Form.useForm();
+  const [formCreate] = Form.useForm();
+  const [formUpdate] = Form.useForm();
 
   const columns = [
     {
@@ -215,7 +214,7 @@ function Categories() {
   //
 
   const handleOk = () => {
-    updateForm.submit();
+    formUpdate.submit();
   };
   //
 
@@ -241,7 +240,7 @@ function Categories() {
     setIsChangedImage(false);
     setIsChangeValueUpload(false);
 
-    updateForm.setFieldsValue({
+    formUpdate.setFieldsValue({
       name: record.name,
       description: record.description,
       file: record.imageUrl ? savedUrl : [],
@@ -264,15 +263,14 @@ function Categories() {
     let formData = null;
     let newData = { ...values };
     let URL = URLCategory + "/insertWithoutImage";
-
     //If containing an image <=> file !== null
     if (file) {
       URL = URLCategory + "/insertWithImage";
-
       formData = new FormData();
+      for (let key in values) {
+        formData.append(key, values[key]);
+      }
       formData.append("file", file);
-      formData.append("name", values.name);
-      formData.append("description", values.description);
       newData = formData;
     }
 
@@ -285,7 +283,7 @@ function Categories() {
           if (file) {
             setFile(null);
           }
-          createForm.resetFields();
+          formCreate.resetFields();
           notification.info({
             message: "Thông báo",
             description: "Thêm mới thành công",
@@ -319,11 +317,12 @@ function Categories() {
     let URL = URLCategory + "/updateByIdWithoutImage/" + selectedId;
     //If containing an image <=> file !== null
     if (file) {
-      URL = URLCategory + "/updateByIdWithImage/" + selectedId;
       formData = new FormData();
+      for (let key in values) {
+        formData.append(key, values[key]);
+      }
       formData.append("file", file);
-      formData.append("name", values.name);
-      formData.append("description", values.description);
+      URL = URLCategory + "/updateByIdWithImage/" + selectedId;
       newData = formData;
     }
     //POST
@@ -368,8 +367,8 @@ function Categories() {
 
   useEffect(() => {
     axios.get(URLCategory).then((response) => {
-      setCategories(response.data.result);
-      setTotalDocs(response.data.result.length);
+      setCategories(response.data.results);
+      setTotalDocs(response.data.results.length);
     });
   }, [refresh]);
   //
@@ -379,11 +378,12 @@ function Categories() {
       <Content style={{ padding: 24 }}>
         <Form
           {...PropsForm}
-          form={createForm}
-          name="createForm"
+          form={formCreate}
+          name="formCreate"
           onFinish={handleFinishCreate}
           onFinishFailed={() => {
-            message.info("Error at onFinishFailed at UpdateForm");
+            // message.info("Error at onFinishFailed at formCreate");
+            console.error("Error at onFinishFailed at formCreate");
           }}
         >
           <Form.Item {...PropsFormItemName}>
@@ -448,11 +448,12 @@ function Categories() {
         >
           <Form
             {...PropsForm}
-            form={updateForm}
-            name="updateForm"
+            form={formUpdate}
+            name="formUpdate"
             onFinish={handleFinishUpdate}
             onFinishFailed={() => {
-              message.info("Error at onFinishFailed at UpdateForm");
+              // message.info("Error at onFinishFailed at formUpdate");
+              console.error("Error at onFinishFailed at formUpdate");
             }}
           >
             <Form.Item {...PropsFormItemName}>

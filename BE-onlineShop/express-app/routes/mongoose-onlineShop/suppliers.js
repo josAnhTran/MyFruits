@@ -62,6 +62,22 @@ const storage = multer.diskStorage({
 });
 
 const uploadImg = multer({ storage: storage }).single("file");
+
+
+//Get all docs
+// router.get("/",passport.authenticate("jwt", { session: false }), async (req, res, next) => {
+  router.get("/", async (req, res, next) => {
+    try {
+      const docs = await Supplier.find().sort({ _id: -1 });
+      // const docs = await Supplier.find();
+      res.json({ ok: true, results: docs });
+    } catch (err) {
+      const errMsgMongoDB = formatterErrorFunc(err, COLLECTION_SUPPLIERS);
+  
+      res.status(400).json({ ok: false, error: errMsgMongoDB });
+    }
+  });
+  //
 // Just update field: image file
 router.patch("/updateOnlyImage/:id", loadSupplier, (req, res) => {
   // Func loadSupplier validate id; check existing the document with id in the collection
@@ -601,19 +617,7 @@ router.delete("/delete-id/:id", validateId, async (req, res, next) => {
 });
 //
 
-//Get all categories
-router.get("/",passport.authenticate("jwt", { session: false }), async (req, res, next) => {
-  try {
-    // const categories = await Supplier.find().sort({ _id: -1 });
-    const categories = await Supplier.find();
-    res.json({ ok: true, result: categories });
-  } catch (err) {
-    const errMsgMongoDB = formatterErrorFunc(err, COLLECTION_SUPPLIERS);
 
-    res.status(400).json({ ok: false, error: errMsgMongoDB });
-  }
-});
-//
 //----------------------------------------
 
 router.get("/search/:id", async (req, res, next) => {
