@@ -114,11 +114,11 @@ function Products() {
 
     {
       title: () => {
-        return <BoldText title={"Tồn"} position="right" />;
+        return <BoldText title={"Tồn kho"} position="right" />;
       },
       key: "stock",
       dataIndex: "stock",
-      width: "4%",
+      width: "5%",
       render: (text) => {
         return <NumberFormatter text={text} />;
       },
@@ -129,7 +129,7 @@ function Products() {
       dataIndex: "category",
       width: "10%",
       render: (text) => {
-        return <div style={{ textAlign: "left" }}> {text}</div>;
+        return <div style={{ textAlign: "left" }}> {text? text: <span style={{color: 'red'}}>Không tìm thấy</span>}</div>;
       },
     },
     {
@@ -138,7 +138,7 @@ function Products() {
       dataIndex: "supplier",
       width: "10%",
       render: (text) => {
-        return <div style={{ textAlign: "left" }}> {text}</div>;
+        return <div style={{ textAlign: "left" }}> {text? text: <span style={{color: 'red'}}>Không tìm thấy</span>}</div>;
       },
     },
     {
@@ -317,7 +317,6 @@ function Products() {
         message: "Vui lòng chọn loại hàng hóa!",
       },
     ],
-    hasFeedback: true,
   };
 
   const PropsFormItemSelectSupplier = {
@@ -329,7 +328,6 @@ function Products() {
         message: "Vui lòng chọn nhà phân phối!",
       },
     ],
-    hasFeedback: true,
   };
 
   const PropsFormItemUpload = {
@@ -377,10 +375,19 @@ function Products() {
     setIsChangeValueUpload(false);
     const fieldsValues = { file: record.imageUrl ? savedUrl : [] };
     for (let key in record) {
-      if (key !== "_id" || "_v") {
+      if (key !== "_id" || "_v" ) {
         fieldsValues[key] = record[key];
       }
     }
+    // case category or supplier not existing
+if(!record.category){
+   fieldsValues.categoryId=null
+}
+if(!record.supplier){
+   fieldsValues.supplierId =null
+}
+
+
     formUpdate.setFieldsValue(fieldsValues);
   };
   //
@@ -657,7 +664,7 @@ function Products() {
                 placeholder="Chọn tùy thuộc danh mục"
                 loading={!categories}
               >
-                {categories &&
+                {categories && isModalOpen &&
                   categories.map((c) => {
                     return (
                       <Select.Option key={c._id} value={c._id}>
