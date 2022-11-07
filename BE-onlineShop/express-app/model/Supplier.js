@@ -15,12 +15,13 @@ const supplierSchema = new Schema(
             trim: true,
             lowercase : true,
             maxLength:[ 50, 'Email không vượt quá 50 kí tự'],
-            required: [true, 'Email không được để trống']
+            required: [true, 'Email không được để trống'],
+            match: [/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/, 'Vui lòng nhập đúng định dạng email']
         },
         phoneNumber: {
             type: String,
             trim: true,
-            maxLength: [50, 'Số điện thoại không vượt quá 50 kí tự']
+            match: [/\(?([0-9]{3})\)?([ .-]?)([0-9]{3})\2([0-9]{4})/, 'Vui lòng nhập đúng định dạng số điện thoại']
         },
         address: {
             type: String,
@@ -33,6 +34,8 @@ const supplierSchema = new Schema(
             trim: true,
         },
     },
+    {"strict": "throw"} // If the field haven't existed in MongooseSchema, throw error
+
     // {
     //     //QUERY
     //     query: {

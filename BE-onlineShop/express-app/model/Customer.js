@@ -19,7 +19,7 @@ const customerSchema = new Schema(
         phoneNumber: {
             type: String,
             trim: true,
-            maxLength: 50
+            match: [/\(?([0-9]{3})\)?([ .-]?)([0-9]{3})\2([0-9]{4})/, 'Vui lòng nhập đúng định dạng số điện thoại']
         },
         address: {
             type: String,
@@ -32,7 +32,9 @@ const customerSchema = new Schema(
             trim: true,
             lowercase : true,
             maxLength: 50,
-            required: true
+            required: true,
+            match: [/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/, 'Vui lòng nhập đúng định dạng email']
+
         },
         birthday: {
             type: Date

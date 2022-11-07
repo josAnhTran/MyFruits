@@ -399,6 +399,7 @@ function Products() {
     //SUBMIT
     let formData = null;
     let newData = { ...values };
+    delete newData.file;
     let URL = URLProduct + "/insertWithoutImage";
 
     //If containing an image <=> file !== null
@@ -429,7 +430,6 @@ function Products() {
         }
       })
       .catch((error) => {
-        console.log("test");
         message.error(
           error.response.data.error.message
             ? error.response.data.error.message
@@ -453,6 +453,7 @@ function Products() {
       imageUrl: currentImageUrl,
       isChangeImgUrl,
     };
+    delete newData.file;
     let URL = URLProduct + "/updateByIdWithoutImage/" + selectedId;
     //If containing an image <=> file !== null
     if (file) {
@@ -574,7 +575,7 @@ function Products() {
           </Form.Item>
 
           <Form.Item {...PropsFormItemDiscount}>
-            <InputNumber min={0} max={100} defaultValue={0} placeholder="Mức giảm giá"  addonAfter='%'/>
+            <InputNumber min={0} max={100} placeholder="Mức giảm giá"  addonAfter='%'/>
           </Form.Item>
 
           <Form.Item {...PropsFormItemStock}>
@@ -696,7 +697,6 @@ function Products() {
               <InputNumber
                 min={0}
                 max={100}
-                defaultValue={0}
                 placeholder="Mức giảm giá"
                 addonAfter="%"
               />

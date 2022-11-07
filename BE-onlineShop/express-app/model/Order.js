@@ -66,6 +66,8 @@ const orderSchema = new Schema(
             default: undefined
         }
     },
+    {"strict": "throw"} // If the field haven't existed in MongooseSchema, throw error
+
     // {
     //     //QUERY
     //     query: {

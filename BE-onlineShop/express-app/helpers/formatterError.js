@@ -23,6 +23,12 @@ const formatterErrorFunc = (err, collection) =>{
     const errKind = err.kind;
 
     //Phân loại kiểu lỗi validation để xử lý
+    //Error about StrictModeError
+    if(errName === 'StrictModeError'){
+      errors.name = 'Lỗi trường dữ liệu chưa được khai báo trong DB';
+      errors.message= `Trường ${err.path} chưa được khai báo trong DB`
+      return errors;
+    }
     // Error about formatter ObjectId
     if((errKind === 'ObjectId')&&(errName === 'CastError')){
       errors.name = 'Mã ID';

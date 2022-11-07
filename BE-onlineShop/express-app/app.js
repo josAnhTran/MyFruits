@@ -29,6 +29,7 @@ const indexRouter = require("./routes/others/index");
 
 //------------------ONLINE-SHOP- MONGOOSE---- begin-------------------------//
 const authOnlineShopMongooseRouter = require("./routes/mongoose-onlineShop/auth");
+const usersOnlineShopMongooseRouter = require("./routes/mongoose-onlineShop/users");
 const categoriesOnlineShopMongooseRouter = require("./routes/mongoose-onlineShop/categories");
 const suppliersOnlineShopMongooseRouter = require("./routes/mongoose-onlineShop/suppliers");
 const productsOnlineShopMongooseRouter = require("./routes/mongoose-onlineShop/products");
@@ -115,6 +116,7 @@ app.use("/productsOnlineShopMongoose", productsOnlineShopMongooseRouter);
 app.use("/customersOnlineShopMongoose", customersOnlineShopMongooseRouter);
 app.use("/ordersOnlineShopMongoose", ordersOnlineShopMongooseRouter);
 app.use("/employeesOnlineShopMongoose", employeesOnlineShopMongooseRouter);
+app.use("/usersOnlineShopMongoose", usersOnlineShopMongooseRouter);
 //---------------------End--------------------------------//
 
 //middleware

@@ -262,6 +262,8 @@ function Categories() {
     //SUBMIT
     let formData = null;
     let newData = { ...values };
+    delete newData.file
+
     let URL = URLCategory + "/insertWithoutImage";
     //If containing an image <=> file !== null
     if (file) {
@@ -314,6 +316,8 @@ function Categories() {
       imageUrl: currentImageUrl,
       isChangeImgUrl,
     };
+    delete newData.file
+
     let URL = URLCategory + "/updateByIdWithoutImage/" + selectedId;
     //If containing an image <=> file !== null
     if (file) {

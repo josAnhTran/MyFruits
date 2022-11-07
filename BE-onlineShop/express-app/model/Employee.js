@@ -19,7 +19,7 @@ const employeeSchema = new Schema(
         phoneNumber: {
             type: String,
             trim: true,
-            maxLength: 50
+            match: [/\(?([0-9]{3})\)?([ .-]?)([0-9]{3})\2([0-9]{4})/, 'Vui lòng nhập đúng định dạng số điện thoại']
         },
         address: {
             type: String,
@@ -32,12 +32,30 @@ const employeeSchema = new Schema(
             trim: true,
             lowercase : true,
             maxLength: 50,
-            required: true
+            required: true,
+            match: [/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/, 'Vui lòng nhập đúng định dạng email']
+
         },
         birthday: {
-            type: Date
+            type: Date,
+            //Employee have his age more than 18 years
+            validate: {
+                validator: function (v){
+                    return (
+                        v && //check that there is a date object
+                        v.getTime() <= Date.now() - 18*365*24*60*60*1000
+                    )
+                },
+                message: 'nhân viên phải lớn hơn hoặc bằng 18 tuổi'
+            }
+        },
+        imageUrl: {
+            type: String,
+            trim: true,
         }
     },
+    {"strict": "throw"} // If the field haven't existed in MongooseSchema, throw error
+
     // {
     //     //QUERY
     //     query: {

@@ -26,6 +26,8 @@ const productSchema = new Schema(
             // required: [true, 'Đường dẫn hình ảnh phải là "Null" hoặc một đường dẫn nào đó ']
         }
     },
+    {"strict": "throw"}, // If the field haven't existed in MongooseSchema, throw error
+
     {
         //QUERY
         query: {

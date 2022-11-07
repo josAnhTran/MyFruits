@@ -245,6 +245,7 @@ router.post("/insertWithImage", (req, res, next) => {
         // const imageUrl = `/images/categories/initiation/${req.file.filename}`;
         imageUrl = `${PATH_FOLDER_IMAGES}/${COLLECTION_CATEGORIES}/${FOLDER_INITIATION}/${req.file.filename}`;
         const newData = { ...req.body, imageUrl };
+        delete newData.file
 
         //Create a new blog post object
         const newDoc = new Category(newData);
@@ -363,6 +364,7 @@ router.patch("/updateByIdWithImage/:id", loadCategory, (req, res) => {
         // console.log({ok: true, message: 'Add the new updating image in to DiskStorage successfully'})
 
         const newData = { ...req.body };
+        delete newData.file
         //--change field imageUrl
         newData.imageUrl = newImgUrl;
         const opts = { runValidators: true };
@@ -434,7 +436,7 @@ router.patch("/updateByIdWithImage/:id", loadCategory, (req, res) => {
               ok: false,
               message:
                 "the new image added into DiskStorage, after that, this file Image is deleted from DiskStorage, when something wrong at updating the updatedDoc in Mongodb ",
-              result: errMsgMongoDB,
+              error: errMsgMongoDB,
             });
           } catch (errRmvFile) {
             res.status(500).json({
@@ -444,7 +446,7 @@ router.patch("/updateByIdWithImage/:id", loadCategory, (req, res) => {
               message:
                 "error when updating the updateDocument in Mongodb, also,can not delete the new file in DiskStorage. ",
               errRmvFile,
-              result: errMsgMongoDB,
+              error: errMsgMongoDB,
             });
           }
         } else {
@@ -453,7 +455,7 @@ router.patch("/updateByIdWithImage/:id", loadCategory, (req, res) => {
             ok: false,
             warning: "we cannot find this new file in DiskStorage to delete it",
             message: " error when updating the updateDocument in Mongodb",
-            result: errMsgMongoDB,
+            error: errMsgMongoDB,
           });
         }
       } catch (errCheckFile) {
@@ -463,7 +465,7 @@ router.patch("/updateByIdWithImage/:id", loadCategory, (req, res) => {
             "Check the new uploaded image existing unsuccessfully to delete it",
           message: "error when updating the updateDocument in Mongodb",
           errCheckFile,
-          result: errMsgMongoDB,
+          error: errMsgMongoDB,
         });
       }
     }
@@ -611,7 +613,7 @@ router.delete("/delete-id/:id", validateId, async (req, res, next) => {
     res.status(400).json({
       ok: false,
       message: "Failed to delete the document with ID",
-      err: errMsgMongoDB,
+      error: errMsgMongoDB,
     });
   }
 });

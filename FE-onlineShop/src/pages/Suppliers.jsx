@@ -333,6 +333,8 @@ function Suppliers() {
     //SUBMIT
     let formData = null;
     let newData = { ...values };
+    delete newData.file
+
     let URL = URLSupplier + "/insertWithoutImage";
 
     //If containing an image <=> file !== null
@@ -386,6 +388,7 @@ function Suppliers() {
       imageUrl: currentImageUrl,
       isChangeImgUrl,
     };
+    delete newData.file
     let URL = URLSupplier + "/updateByIdWithoutImage/" + selectedId;
     //If containing an image <=> file !== null
     if (file) {
