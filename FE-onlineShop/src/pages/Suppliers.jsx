@@ -213,7 +213,7 @@ function Suppliers() {
     name: "email",
     rules: [
       {
-        type: "email",
+        pattern: /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
         message: "Bạn nhập chưa đúng định dạng email",
       },
       {
@@ -306,14 +306,21 @@ function Suppliers() {
     setCurrentImageUrl(record.imageUrl ? record.imageUrl : null);
     setIsChangedImage(false);
     setIsChangeValueUpload(false);
+    const fieldsValues = { file: record.imageUrl ? savedUrl : [] };
+    for (let key in record) {
+      if (key !== "_id" || "_v") {
+        fieldsValues[key] = record[key];
+      }
+    }
+    formUpdate.setFieldsValue(fieldsValues);
 
-    formUpdate.setFieldsValue({
-      name: record.name,
-      email: record.email,
-      phoneNumber: record.phoneNumber,
-      address: record.address,
-      file: record.imageUrl ? savedUrl : [],
-    });
+    // formUpdate.setFieldsValue({
+    //   name: record.name,
+    //   email: record.email,
+    //   phoneNumber: record.phoneNumber,
+    //   address: record.address,
+    //   file: record.imageUrl ? savedUrl : [],
+    // });
   };
 
   //
@@ -333,7 +340,7 @@ function Suppliers() {
     //SUBMIT
     let formData = null;
     let newData = { ...values };
-    delete newData.file
+    delete newData.file;
 
     let URL = URLSupplier + "/insertWithoutImage";
 
@@ -388,7 +395,7 @@ function Suppliers() {
       imageUrl: currentImageUrl,
       isChangeImgUrl,
     };
-    delete newData.file
+    delete newData.file;
     let URL = URLSupplier + "/updateByIdWithoutImage/" + selectedId;
     //If containing an image <=> file !== null
     if (file) {

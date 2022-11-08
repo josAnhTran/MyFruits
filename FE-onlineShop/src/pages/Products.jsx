@@ -375,9 +375,7 @@ function Products() {
     setIsChangeValueUpload(false);
     const fieldsValues = { file: record.imageUrl ? savedUrl : [] };
     for (let key in record) {
-      if (key !== "_id" || "_v" ) {
         fieldsValues[key] = record[key];
-      }
     }
     // case category or supplier not existing
 if(!record.category){

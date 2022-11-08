@@ -312,15 +312,15 @@ router.post("/insertWithImage", (req, res, next) => {
 //--ok validation
 router.post("/insertWithoutImage", async (req, res) => {
   try {
-    const data = req.body;
-        if (data.birthday) {
+    const newData = req.body;
+        if (newData.birthday) {
       //format date: YYYY-MM-DD => type of Date: string
-      data.birthday = moment(data.birthday).utc().local().format("YYYY-MM-DD");
+      newData.birthday = moment(newData.birthday).utc().local().format("YYYY-MM-DD");
       //convert type of date from String to Date
-      data.birthday = new Date(data.birthday);
+      newData.birthday = new Date(newData.birthday);
         }
     //Create a new blog post object
-    const newDoc = new Employee(data);
+    const newDoc = new Employee(newData);
     //Insert the newDocument in our Mongodb database
     await newDoc.save();
     res.status(201).json({ ok: true, result: newDoc });
@@ -375,7 +375,12 @@ router.patch("/updateByIdWithImage/:id", loadEmployee, (req, res) => {
         // console.log({ok: true, message: 'Add the new updating image in to DiskStorage successfully'})
 
         const newData = { ...req.body };
-        console.log({demo: newData})
+        if (newData.birthday) {
+          //format date: YYYY-MM-DD => type of Date: string
+          newData.birthday = moment(newData.birthday).utc().local().format("YYYY-MM-DD");
+          //convert type of date from String to Date
+          newData.birthday = new Date(newData.birthday);
+            }
         delete newData.file
 
         //--change field imageUrl
@@ -490,17 +495,24 @@ router.patch("/updateByIdWithImage/:id", loadEmployee, (req, res) => {
 router.patch("/updateByIdWithoutImage/:id", validateId , async (req, res) => {
   try {
     const { id } = req.params;
-    const updateData = { ...req.body };
+    const newData = { ...req.body };
+    if (newData.birthday) {
+      //format date: YYYY-MM-DD => type of Date: string
+      newData.birthday = moment(newData.birthday).utc().local().format("YYYY-MM-DD");
+      //convert type of date from String to Date
+      newData.birthday = new Date(newData.birthday);
+        }
     const currentImgUrl = req.body.imageUrl;
     const { isChangeImgUrl } = req.body;
     //Delete key isChangeImage from data before update in MongoDB
-    delete updateData.isChangeImgUrl;
+    delete newData.isChangeImgUrl;
     const opts = { runValidators: true };
     //--Because client don't want use image, means, field imageUrl = null
     //But, if the client not change image Upload, then keeping the old imageUrl
-    if (isChangeImgUrl) updateData.imageUrl = null;
+    if (isChangeImgUrl) newData.imageUrl = null;
     //--Update in Mongodb
-    const updatedDoc = await Employee.findByIdAndUpdate(id, updateData, opts);
+    console.log(newData)
+    const updatedDoc = await Employee.findByIdAndUpdate(id, newData, opts);
     //--If currentImgUrl= null, means that the user haven't have image before, then: do nothing
     if (!currentImgUrl || !isChangeImgUrl) {
       res.json({

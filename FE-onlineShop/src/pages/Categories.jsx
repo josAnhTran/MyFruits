@@ -239,12 +239,17 @@ function Categories() {
     setCurrentImageUrl(record.imageUrl ? record.imageUrl : null);
     setIsChangedImage(false);
     setIsChangeValueUpload(false);
+    const fieldsValues = { file: record.imageUrl ? savedUrl : [] };
+    for (let key in record) {
+        fieldsValues[key] = record[key];
+    }
+    formUpdate.setFieldsValue(fieldsValues);
 
-    formUpdate.setFieldsValue({
-      name: record.name,
-      description: record.description,
-      file: record.imageUrl ? savedUrl : [],
-    });
+    // formUpdate.setFieldsValue({
+    //   name: record.name,
+    //   description: record.description,
+    //   file: record.imageUrl ? savedUrl : [],
+    // });
   };
   //
   const handleChange_UploadOnlyImage = (info) => {
@@ -262,7 +267,7 @@ function Categories() {
     //SUBMIT
     let formData = null;
     let newData = { ...values };
-    delete newData.file
+    delete newData.file;
 
     let URL = URLCategory + "/insertWithoutImage";
     //If containing an image <=> file !== null
@@ -316,7 +321,7 @@ function Categories() {
       imageUrl: currentImageUrl,
       isChangeImgUrl,
     };
-    delete newData.file
+    delete newData.file;
 
     let URL = URLCategory + "/updateByIdWithoutImage/" + selectedId;
     //If containing an image <=> file !== null
