@@ -244,7 +244,14 @@ router.post("/insertWithImage", (req, res, next) => {
         // const imageUrl = `/images/categories/initiation/${req.file.filename}`;
         imageUrl = `${PATH_FOLDER_IMAGES}/${COLLECTION_EMPLOYEES}/${FOLDER_INITIATION}/${req.file.filename}`;
         const newData = { ...req.body, imageUrl };
-
+        delete newData.file
+        console.log(newData.birthday)
+        if (newData.birthday) {
+          //format date: YYYY-MM-DD => type of Date: string
+          newData.birthday = moment(newData.birthday).utc().local().format("YYYY-MM-DD");
+          //convert type of date from String to Date
+          newData.birthday = new Date(newData.birthday);
+            }
         //Create a new blog post object
         const newDoc = new Employee(newData);
         //Insert the new Document in our Mongodb database
@@ -368,6 +375,9 @@ router.patch("/updateByIdWithImage/:id", loadEmployee, (req, res) => {
         // console.log({ok: true, message: 'Add the new updating image in to DiskStorage successfully'})
 
         const newData = { ...req.body };
+        console.log({demo: newData})
+        delete newData.file
+
         //--change field imageUrl
         newData.imageUrl = newImgUrl;
         const opts = { runValidators: true };

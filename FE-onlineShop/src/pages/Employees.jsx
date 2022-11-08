@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from "react";
 import "./css/CommonStyle.css";
 import axios from "axios";
-
+import moment from "moment";
+import "moment/locale/vi";
+import locale from "antd/es/locale/vi_VN";
 import {
   Button,
   Layout,
@@ -13,6 +15,7 @@ import {
   notification,
   Modal,
   Upload,
+  DatePicker,
 } from "antd";
 import { Content } from "antd/lib/layout/layout";
 import {
@@ -28,6 +31,7 @@ import LabelCustomization, {
   BoldText,
   TitleTable,
 } from "./components/subComponents";
+import ConfigProvider from "antd/es/config-provider";
 
 function Employees() {
   const [uploading, setUploading] = useState(false);
@@ -43,14 +47,15 @@ function Employees() {
 
   const [formCreate] = Form.useForm();
   const [formUpdate] = Form.useForm();
+  const dateFormatList = ["DD/MM/YYYY", "DD/MM/YY"];
 
   const columns = [
     {
       title: () => {
-        return <BoldText title={"Danh mục "} />;
+        return <BoldText title={"Họ tên "} />;
       },
-      key: "name",
-      dataIndex: "name",
+      key: "fullName",
+      dataIndex: "fullName",
       width: "10%",
       fixed: "left",
       // defaultSortOrder: 'ascend',
@@ -81,10 +86,31 @@ function Employees() {
 
     {
       title: () => {
-        return <BoldText title={"Mô tả"} />;
+        return <BoldText title={"Số điện thoại"} />;
       },
-      key: "description",
-      dataIndex: "description",
+      key: "phoneNumber",
+      dataIndex: "phoneNumber",
+    },
+    {
+      title: () => {
+        return <BoldText title={"Email"} />;
+      },
+      key: "email",
+      dataIndex: "email",
+    },
+    {
+      title: () => {
+        return <BoldText title={"Năm sinh"} />;
+      },
+      key: "formattedBirthday",
+      dataIndex: "formattedBirthday",
+    },
+    {
+      title: () => {
+        return <BoldText title={"Địa chỉ"} />;
+      },
+      key: "address",
+      dataIndex: "address",
     },
     {
       title: () => {
@@ -141,6 +167,10 @@ function Employees() {
   ];
   //
 
+  const disabledDate = (current) => {
+    // Can not select days after 18 years ago
+    return current >= moment().add(-18, "year");
+  };
   //Begin: Props for components
   const PropsTable = {
     style: { marginTop: 20 },
@@ -167,32 +197,101 @@ function Employees() {
     autoComplete: "off",
   };
 
-  const PropsFormItemName = {
-    label: <LabelCustomization title={"Tên danh mục"} />,
-    name: "name",
+  const PropsFormItemFirstName = {
+    label: <LabelCustomization title={"Họ"} />,
+    name: "firstName",
     rules: [
       {
         required: true,
-        message: "Vui lòng nhập tên danh mục!",
+        message: "Vui lòng nhập họ và tên lót( nếu có) của nhân viên!",
       },
       {
         max: 50,
-        message: "Tên danh mục không quá 50 kí tự!",
+        message: "Trường dữ liệu không quá 50 kí tự!",
       },
       {
         whitespace: true,
-        message: "Tên danh mục không thể là khoảng trống",
+        message: "Trường dữ liệu không thể là khoảng trống",
+      },
+    ],
+  };
+  const PropsFormItemLastName = {
+    label: <LabelCustomization title={"Tên"} />,
+    name: "lastName",
+    rules: [
+      {
+        required: true,
+        message: "Vui lòng nhập tên nhân viên!",
+      },
+      {
+        max: 50,
+        message: "Trường dữ liệu không quá 50 kí tự!",
+      },
+      {
+        whitespace: true,
+        message: "Trường dữ liệu không thể là khoảng trống",
       },
     ],
   };
 
-  const PropsFormItemDescription = {
-    label: <LabelCustomization title={"Mô tả danh mục"} />,
-    name: "description",
+  const PropsFormItemPhoneNumber = {
+    label: <LabelCustomization title={"Số điện thoại"} />,
+    name: "phoneNumber",
     rules: [
       {
+        pattern: /\(?([0-9]{3})\)?([ .-]?)([0-9]{3})\2([0-9]{4})/,
+        message: "Bạn chưa nhập đúng định dạng số điện thoại",
+      },
+      {
+        max: 50,
+        message: "Số điện thoại không quá 50 kí tự!",
+      },
+      {
+        whitespace: true,
+        message: "Số điện thoại không thể là khoảng trống",
+      },
+    ],
+  };
+
+  const PropsFormItemAddress = {
+    label: <LabelCustomization title={"Địa chỉ"} />,
+    name: "address",
+    rules: [
+      {
+        required: true,
+        message: "Vui lòng nhập địa chỉ của nhân viên!",
+      },
+      {
         max: 500,
-        message: "Phần mô tả danh mục không quá 500 kí tự!",
+        message: "Địa chỉ không quá 500 kí tự!",
+      },
+      {
+        whitespace: true,
+        message: "Địa chỉ không thể là khoảng trống",
+      },
+    ],
+  };
+
+  const PropsFormItemBirthday = {
+    label: <LabelCustomization title={"Ngày sinh"} />,
+    name: "birthday",
+  };
+
+  const PropsFormItemEmail = {
+    label: <LabelCustomization title={"Email"} />,
+    name: "email",
+    rules: [
+      {
+        type: "email",
+        message: "Bạn nhập chưa đúng định dạng email",
+      },
+      {
+        max: 50,
+        message: "Email không quá 50 kí tự!",
+      },
+      {
+        required: true,
+        message: "Vui lòng nhập email của nhân viên",
       },
     ],
   };
@@ -261,8 +360,14 @@ function Employees() {
   const handleFinishCreate = (values) => {
     //SUBMIT
     let formData = null;
+
+    if (values.birthday) {
+      values.birthday = values["birthday"].format("YYYY-MM-DD");
+    }else{
+      delete values.birthday
+    }
     let newData = { ...values };
-    delete newData.file
+    delete newData.file;
 
     let URL = URLEmployee + "/insertWithoutImage";
     //If containing an image <=> file !== null
@@ -293,6 +398,7 @@ function Employees() {
         }
       })
       .catch((error) => {
+        console.log(error);
         message.error(
           error.response.data.error.message
             ? error.response.data.error.message
@@ -316,7 +422,7 @@ function Employees() {
       imageUrl: currentImageUrl,
       isChangeImgUrl,
     };
-    delete newData.file
+    delete newData.file;
 
     let URL = URLEmployee + "/updateByIdWithoutImage/" + selectedId;
     //If containing an image <=> file !== null
@@ -372,10 +478,22 @@ function Employees() {
   useEffect(() => {
     axios.get(URLEmployee).then((response) => {
       const employees = response.data.results;
-      let newEmployees= [];
-employees.map(e => newEmployees.push({...e, fullName: `${e.firstName} ${e.lastName}`})
-)
-console.log({newEmployees})
+      let newEmployees = [];
+      employees.map((e) => {
+        // Formatting birthday before showing
+        let formattedBirthday = null;
+        if (e.birthday) {
+          let array1 = e.birthday.split("T");
+          let array2 = array1[0].split("-");
+          let array3 = array2.reverse();
+          formattedBirthday = array3.join("-");
+        }
+        newEmployees.push({
+          ...e,
+          formattedBirthday,
+          fullName: `${e.firstName} ${e.lastName}`,
+        });
+      });
       setEmployees(newEmployees);
       setTotalDocs(newEmployees.length);
     });
@@ -385,57 +503,84 @@ console.log({newEmployees})
   return (
     <Layout>
       <Content style={{ padding: 24 }}>
-        {/* <Form
-          {...PropsForm}
-          form={formCreate}
-          name="formCreate"
-          onFinish={handleFinishCreate}
-          onFinishFailed={() => {
-            // message.info("Error at onFinishFailed at formCreate");
-            console.error("Error at onFinishFailed at formCreate");
-          }}
-        >
-          <Form.Item {...PropsFormItemName}>
-            <Input placeholder="Tên danh mục mới" />
-          </Form.Item>
-
-          <Form.Item {...PropsFormItemDescription}>
-            <TextArea rows={3} placeholder="Mô tả danh mục mới" />
-          </Form.Item>
-
-          <Form.Item
-            {...PropsFormItemUpload}
-            //Handling update fileList
-            getValueFromEvent={normFile}
-          >
-            <Upload
-              listType="picture"
-              showUploadList={true}
-              beforeUpload={(file) => {
-                setFile(file);
-                return false;
-              }}
-              onRemove={() => {
-                setFile(null);
-              }}
-            >
-              <Button icon={<UploadOutlined />} loading={uploading}>
-                Tải ảnh
-              </Button>
-            </Upload>
-          </Form.Item>
-
-          <Form.Item
-            wrapperCol={{
-              offset: 8,
-              span: 16,
+        <ConfigProvider locale={locale}>
+          <Form
+            {...PropsForm}
+            form={formCreate}
+            name="formCreate"
+            onFinish={handleFinishCreate}
+            onFinishFailed={() => {
+              // message.info("Error at onFinishFailed at formCreate");
+              console.error("Error at onFinishFailed at formCreate");
             }}
           >
-            <Button type="primary" htmlType="submit">
-              Tạo mới
-            </Button>
-          </Form.Item>
-        </Form> */}
+            <Form.Item {...PropsFormItemFirstName}>
+              <Input placeholder="First name" />
+            </Form.Item>
+
+            <Form.Item {...PropsFormItemLastName}>
+              <Input placeholder="Last name" />
+            </Form.Item>
+
+            <Form.Item {...PropsFormItemEmail}>
+              <Input placeholder="Email" />
+            </Form.Item>
+
+            <Form.Item {...PropsFormItemPhoneNumber}>
+              <Input placeholder="Số điện thoại của nhan vien" />
+            </Form.Item>
+            <Form.Item
+              {...PropsFormItemBirthday}
+            >
+              <DatePicker
+                allowClear={false}
+                showToday={false}
+                disabledDate={disabledDate}
+                placeholder= 'dd/mm/yyyy'
+                format={dateFormatList}
+                locale={locale}
+                renderExtraFooter={() => 'Nhân viên đủ 18 tuổi trở lên'}
+              />
+            </Form.Item>
+            <Form.Item {...PropsFormItemAddress}>
+              <TextArea rows={3} placeholder="Dia chi nhan vien" />
+            </Form.Item>
+
+            <Form.Item
+              {...PropsFormItemUpload}
+              //Handling update fileList
+              getValueFromEvent={normFile}
+            >
+              <Upload
+                listType="picture"
+                showUploadList={true}
+                beforeUpload={(file) => {
+                  setFile(file);
+                  return false;
+                }}
+                onRemove={() => {
+                  setFile(null);
+                }}
+              >
+                <Button icon={<UploadOutlined />} loading={uploading}>
+                  Tải ảnh
+                </Button>
+              </Upload>
+            </Form.Item>
+
+            <Form.Item
+              wrapperCol={{
+                offset: 8,
+                span: 16,
+              }}
+            >
+              <Button type="primary" htmlType="submit">
+                Tạo mới
+              </Button>
+            </Form.Item>
+          </Form>
+        </ConfigProvider>
+
         <Table
           {...PropsTable}
           columns={columns}
