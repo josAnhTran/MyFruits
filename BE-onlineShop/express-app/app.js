@@ -29,6 +29,7 @@ const indexRouter = require("./routes/others/index");
 
 //------------------ONLINE-SHOP- MONGOOSE---- begin-------------------------//
 const authOnlineShopMongooseRouter = require("./routes/mongoose-onlineShop/auth");
+const upListPicturesOnlineShopMongooseRouter = require("./routes/mongoose-onlineShop/upListPictures");
 const usersOnlineShopMongooseRouter = require("./routes/mongoose-onlineShop/users");
 const categoriesOnlineShopMongooseRouter = require("./routes/mongoose-onlineShop/categories");
 const suppliersOnlineShopMongooseRouter = require("./routes/mongoose-onlineShop/suppliers");
@@ -36,7 +37,7 @@ const productsOnlineShopMongooseRouter = require("./routes/mongoose-onlineShop/p
 const customersOnlineShopMongooseRouter = require("./routes/mongoose-onlineShop/customers");
 const ordersOnlineShopMongooseRouter = require("./routes/mongoose-onlineShop/orders");
 const employeesOnlineShopMongooseRouter = require("./routes/mongoose-onlineShop/employees");
-const { JWT_SETTING, COLLECTION_LOGIN } = require("./helpers/constants");
+const { JWT_SETTING, COLLECTION_USER } = require("./helpers/constants");
 const { findDocument, findDocuments } = require("./helpers/MongoDBOnlineShop");
 //---------------------End--------------------------------//
 
@@ -59,12 +60,22 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
 //CORS
-app.use(cors({ origin: "*" }));
+
+// app.get('/products/:id', cors(), function (req, res, next) {
+//   res.json({msg: 'This is CORS-enabled for a Single Route'})
+// })
+
+app.use(cors({
+  // origin: 'http://127.0.0.1:5500/'
+   origin: "*"
+  //  methods: ['POST', 'GET']
+   }));
+
 
 //Passport: Basic Auth
 passport.use( new BasicStrategy(function(username, password, done) {
   console.log('\n BasicStrategy \n');
-  findDocuments({query: {email: username, password}}, COLLECTION_LOGIN)
+  findDocuments({query: {email: username, password}}, COLLECTION_USER)
   .then(result =>{
     if(result.length > 0){
       return done(null, true);
@@ -91,9 +102,9 @@ opts.audience = JWT_SETTING.AUDIENCE;
 
 passport.use(
   new JwtStrategy(opts, function (payload, done) {
-    console.log("\n🚀 JwtStrategy 🚀\n");
+    console.log("\n🚀 JwtStrategy ... 🚀\n");
     const _id = payload.uid;
-    findDocument(_id, COLLECTION_LOGIN)
+    findDocument(_id, COLLECTION_USER)
       .then((result) => {
         if (result) {
           return done(null, result);
@@ -110,6 +121,7 @@ passport.use(
 // END: PASSPORT
 //------------------ONLINE-SHOP MONGOOSE---- begin-------------------------//
 app.use("/authOnlineShopMongoose", authOnlineShopMongooseRouter);
+app.use("/upListPicturesOnlineShopMongoose", upListPicturesOnlineShopMongooseRouter);
 app.use("/categoriesOnlineShopMongoose", categoriesOnlineShopMongooseRouter);
 app.use("/suppliersOnlineShopMongoose", suppliersOnlineShopMongooseRouter);
 app.use("/productsOnlineShopMongoose", productsOnlineShopMongooseRouter);

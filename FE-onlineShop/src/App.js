@@ -6,10 +6,13 @@ import Categories from './pages/Categories';
 import Orders from './pages/Orders';
 import Index from './pages/Index';
 import Suppliers from './pages/Suppliers';
-import Customers from './pages/Customers';
+import Customers from './pages/UpListPictures';
 import Employees from './pages/Employees';
 import Products from './pages/Products';
 import Home from './pages/Home';
+import Login from './pages/Login';
+import DemoUseReducer from './pages/DemoUseReducer';
+import ReduxExamples from './pages/ReduxExamples';
 
 
 function App() {
@@ -20,7 +23,9 @@ function App() {
         <li className={styles.link}>
         <NavLink to= 'index'  className= {({ isActive }) => (isActive ? styles.navLinkActive : styles.navLink)}>Trang Chủ</NavLink>
         </li>
-
+        <li className={styles.link}>
+        <NavLink to= 'login'  className= {({ isActive }) => (isActive ? styles.navLinkActive : styles.navLink)}>Đăng Nhập</NavLink>
+        </li>
         <li className={styles.link}>
         <NavLink to= 'orders'  className= {({ isActive }) => (isActive ? styles.navLinkActive : styles.navLink)}>Đơn Đặt Hàng</NavLink>
         </li>
@@ -41,23 +46,26 @@ function App() {
         <NavLink to= 'employees'  className= {({ isActive }) => (isActive ? styles.navLinkActive : styles.navLink)}>Nhân Viên</NavLink>
         </li>
 
-        <li className={styles.link}>
+        {/* <li className={styles.link}>
         <NavLink to= 'customers'  className= {({ isActive }) => (isActive ? styles.navLinkActive : styles.navLink)}>Khách Hàng</NavLink>
+        </li> */}
+        <li className={styles.link}>
+        <NavLink to= 'customers'  className= {({ isActive }) => (isActive ? styles.navLinkActive : styles.navLink)}>Demo</NavLink>
         </li>
       </ul>
 
       {/* ROUTES SETTINGS */}
       <div className={styles.routerArea}>
         <Routes>
-          <Route path='/' element={<Home/>}/>
-          <Route path='/index' element={<Index/>}/>
+          <Route path='/index' element={<ReduxExamples/>}/>
+          <Route path='/login' element={<Login/>}/>
+          <Route path='/' element={<Index/>}/>
           <Route path='/orders' element={<Orders/>}/>
           <Route path='/categories' element={<Categories/>}/>
           <Route path='/suppliers' element={<Suppliers/>}/>
           <Route path='/products' element={<Products/>}/>
           <Route path='/customers' element={<Customers/>}/>
           <Route path='/employees' element={<Employees/>}/>
-          {/* <Route path='/employees' element={<Employees/>}/> */}
 
           {/* NO MATCHING ROUTE */}
           <Route

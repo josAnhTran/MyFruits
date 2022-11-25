@@ -64,10 +64,7 @@ function DemoUseReducer() {
       type: "GET_USER_REQUEST",
     });
 
-    setTimeout(() => {
-
-
-
+    // setTimeout(() => {
     fetch("https://reqres.in/api/userss")
       .then((response) => response.json())
       .then((response) => {
@@ -82,7 +79,7 @@ function DemoUseReducer() {
           data: err,
         });
       });
-    }, 2000);
+    // }, 2000);
   };
 
   return (

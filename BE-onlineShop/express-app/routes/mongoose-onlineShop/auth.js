@@ -6,7 +6,7 @@ const {
   validateSchema,
   loginSchema,
 } = require("../../helpers/schemas/schemas.yup");
-const { JWT_SETTING, COLLECTION_LOGIN } = require("../../helpers/constants");
+const { JWT_SETTING, COLLECTION_USER } = require("../../helpers/constants");
 const {
   findDocuments,
   findDocument,
@@ -15,10 +15,10 @@ const {
 router.post("/login", validateSchema(loginSchema), async (req, res) => {
   try {
     const { email, password } = req.body;
-
+console.log({...req.body})
     const login = await findDocuments(
       { query: { email, password }, projection: { email: 1 } },
-      COLLECTION_LOGIN
+      COLLECTION_USER
     );
     //login = null or login.length not > 0
     if (login && login.length <= 0) {
@@ -66,6 +66,7 @@ router.get(
   "/jwt",
   passport.authenticate("jwt", { session: false }),
   function (req, res) {
+    console.log('hehe')
     res.json({ ok: true, next: "hehe" });
   }
 );
@@ -107,7 +108,7 @@ const allowRoles = (...roles) => {
     //AFTER DECODE: GET UID FROM PAYLOAD
     const { uid } = payload;
     // FINDING BY ID
-    findDocument(uid, COLLECTION_LOGIN).then((document) => {
+    findDocument(uid, COLLECTION_USER).then((document) => {
       console.log(document);
       if (document && document.roles) {
         let ok = false;

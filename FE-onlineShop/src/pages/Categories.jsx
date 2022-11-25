@@ -22,12 +22,18 @@ import {
 } from "@ant-design/icons";
 import TextArea from "antd/lib/input/TextArea";
 
-import { URLCategory, WEB_SERVER_URL } from "../functions/constants";
+import {
+  URLCategory,
+  WEB_SERVER_URL,
+  PATH_CATEGORIES,
+} from "../functions/constants";
 import LabelCustomization, {
   ImgIcon,
   BoldText,
   TitleTable,
 } from "./components/subComponents";
+import axiosClient from "../config/axios";
+import ReduxExamples from "./ReduxExamples";
 
 function Categories() {
   const [uploading, setUploading] = useState(false);
@@ -241,7 +247,7 @@ function Categories() {
     setIsChangeValueUpload(false);
     const fieldsValues = { file: record.imageUrl ? savedUrl : [] };
     for (let key in record) {
-        fieldsValues[key] = record[key];
+      fieldsValues[key] = record[key];
     }
     formUpdate.setFieldsValue(fieldsValues);
 
@@ -375,16 +381,22 @@ function Categories() {
   };
 
   useEffect(() => {
-    axios.get(URLCategory).then((response) => {
+    axiosClient.get(`${WEB_SERVER_URL}${PATH_CATEGORIES}`).then((response) => {
       setCategories(response.data.results);
       setTotalDocs(response.data.results.length);
     });
+
+    // axios.get(URLCategory).then((response) => {
+    //   setCategories(response.data.results);
+    //   setTotalDocs(response.data.results.length);
+    // });
   }, [refresh]);
   //
 
   return (
     <Layout>
       <Content style={{ padding: 24 }}>
+      <ReduxExamples/>
         <Form
           {...PropsForm}
           form={formCreate}

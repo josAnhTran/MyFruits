@@ -2,6 +2,7 @@
 var express = require("express");
 var router = express.Router();
 const passport = require("passport");
+const jwt = require("jsonwebtoken");
 
 const { default: mongoose } = require("mongoose");
 const Category = require("../../model/Category");
@@ -14,7 +15,8 @@ const {
   PATH_FOLDER_PUBLIC,
   PATH_FOLDER_IMAGES,
   FOLDER_INITIATION,
-  COLLECTION_CATEGORIES
+  COLLECTION_CATEGORIES,
+  COLLECTION_USER,
 } = require("../../helpers/constants");
 
 mongoose.connect(URL_APP_SERVER);
@@ -27,6 +29,7 @@ const {
   updateDocument,
   updateDocuments,
   findDocuments,
+  findDocument,
   deleteMany,
   deleteOneWithId,
   removeFieldById,
@@ -42,6 +45,41 @@ const {
 } = require("../../helpers/schemas/schemasCategoriesOnlineShop.yup");
 
 //
+//CHECK ROLES
+const allowRoles = (...roles) => {
+  //return a middleware
+  return (req, res, next) => {
+    //GET BEARER TOKEN FROM HEADER
+    const bearerToken = req.get("Authorization").replace("Bearer ", "");
+    //DECODE TOKEN
+    const payload = jwt.decode(bearerToken, { json: true });
+    //AFTER DECODE: GET UID FROM PAYLOAD
+    const { uid } = payload;
+    // FINDING BY ID
+    findDocument(uid, COLLECTION_USER).then((document) => {
+      console.log(document);
+      if (document && document.roles) {
+        let ok = false;
+        document.roles.forEach((role) => {
+          if (roles.includes(role)) {
+            ok = true;
+            return;
+          }
+        });
+        if (ok) {
+          next();
+        } else {
+          res.status(403).json({ message: "Forbidden" });
+        }
+      } else {
+        res.status(403).json({ message: "Forbidden" });
+      }
+    });
+  };
+};
+
+
+
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     let lastLocation = FOLDER_INITIATION;
@@ -65,8 +103,8 @@ const storage = multer.diskStorage({
 const uploadImg = multer({ storage: storage }).single("file");
 
 //Get all docs
-// router.get("/",passport.authenticate("jwt", { session: false }), async (req, res, next) => {
-  router.get("/", async (req, res, next) => {
+router.get("/", passport.authenticate("jwt", { session: false }),allowRoles("administrators"), async (req, res, next) => {
+  // router.get("/", async (req, res, next) => {
     try {
       const docs = await Category.find().sort({ _id: -1 });
       // const docs = await Category.find();
